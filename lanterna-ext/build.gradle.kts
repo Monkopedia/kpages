@@ -13,13 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+buildscript {
+    repositories {
+        maven(url = "https://dl.bintray.com/kotlin/dokka")
+    }
+}
 plugins {
     // Apply the Kotlin JVM plugin to add support for Kotlin.
     id("org.jetbrains.kotlin.jvm")
     kotlin("plugin.serialization") version "1.4.10"
     kotlin("kapt")
-    java
+    id("org.jetbrains.dokka") version "1.4.10.2"
+
+    `maven-publish`
+    `signing`
 }
+
+group = "com.monkopedia"
 
 repositories {
     // Use jcenter for resolving dependencies.
@@ -69,4 +79,56 @@ dependencies {
 
     implementation("com.google.auto.service:auto-service-annotations:1.0-rc7")
     kapt("com.google.auto.service:auto-service:1.0-rc7")
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = project.group.toString()
+            artifactId = project.name
+            version = project.version.toString()
+
+            from(components["java"])
+        }
+    }
+    publications.all {
+        if (this !is MavenPublication) return@all
+        pom {
+            name.set("KPages")
+            description.set("A multi-platform library for managing navigation/routing")
+            url.set("http://www.github.com/Monkopedia/kpages")
+            licenses {
+                license {
+                    name.set("The Apache License, Version 2.0")
+                    url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                }
+            }
+            developers {
+                developer {
+                    id.set("monkopedia")
+                    name.set("Jason Monk")
+                    email.set("monkopedia@gmail.com")
+                }
+            }
+            scm {
+                connection.set("scm:git:git://github.com/Monkopedia/kpages.git")
+                developerConnection.set("scm:git:ssh://github.com/Monkopedia/kpages.git")
+                url.set("http://github.com/Monkopedia/kpages/")
+            }
+        }
+    }
+    repositories {
+        maven(url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+            name = "OSSRH"
+            credentials {
+                username = System.getenv("MAVEN_USERNAME")
+                password = System.getenv("MAVEN_PASSWORD")
+            }
+        }
+    }
+}
+
+signing {
+    useGpgCmd()
+    sign(publishing.publications)
 }

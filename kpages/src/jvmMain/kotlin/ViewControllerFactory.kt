@@ -15,5 +15,5 @@
  */
 package com.monkopedia.kpages
 
-actual open class ViewControllerFactory
+actual abstract class ViewControllerFactory
 actual class Navigator
