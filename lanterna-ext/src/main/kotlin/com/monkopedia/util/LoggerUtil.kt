@@ -13,8 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-rootProject.name = "kpages-project"
+package com.monkopedia.util
 
-include(":kpages")
-include(":demo")
-include(":lanterna-ext")
+import kotlin.reflect.KClass
+import kotlin.system.exitProcess
+import kotlinx.coroutines.CoroutineExceptionHandler
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+inline val <T : Any> KClass<T>.logger get() = LoggerFactory.getLogger(java)
+
+val Logger.exceptionHandler get() = CoroutineExceptionHandler { _, throwable ->
+    error("Exception in coroutine", throwable)
+    exitProcess(-1)
+}

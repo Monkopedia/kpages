@@ -13,8 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-rootProject.name = "kpages-project"
+package com.monkopedia.lanterna
 
-include(":kpages")
-include(":demo")
-include(":lanterna-ext")
+import com.googlecode.lanterna.TerminalPosition
+import com.googlecode.lanterna.gui2.Component
+
+fun interface SelectableListener {
+    fun onSelectablesChanged(
+        container: SelectableContainer,
+        actions: List<Pair<TerminalPosition, Selectable>>
+    )
+}
+
+interface SelectableContainer : Component {
+    val selectableListeners: MutableList<SelectableListener>
+
+    val currentSelectables: List<Pair<TerminalPosition, Selectable>>
+}
