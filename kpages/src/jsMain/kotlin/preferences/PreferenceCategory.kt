@@ -39,7 +39,7 @@ import styled.styledDiv
 
 actual external interface PreferenceCategoryProps : RProps {
     actual var title: String?
-    actual var children: ((PreferenceBuilder) -> Unit)?
+    var children: ((PreferenceBuilder) -> Unit)?
 }
 
 open class PreferenceCategory<P : PreferenceCategoryProps, S : RState> : RComponent<P, S>() {

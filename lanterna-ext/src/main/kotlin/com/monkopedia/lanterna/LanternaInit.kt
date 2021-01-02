@@ -46,7 +46,7 @@ object Lanterna {
 
     val activeWindows = mutableSetOf<Window>()
 
-    fun init(kindexHome: File, theme: ThemeData, fonts: Properties) {
+    fun init(fontLoaderRoot: File, theme: ThemeData, fonts: Properties) {
         terminal = DefaultTerminalFactory().createTerminal()
         screen = TerminalScreen(terminal).also {
             it.startScreen()
@@ -65,6 +65,6 @@ object Lanterna {
         }.asCoroutineDispatcher()
         gui.theme = ThemeDataImpl(theme)
 //        gui.theme = PropertyTheme(File(kindexHome, "theme.properties").properties)
-        fontLoader = FontLoader(kindexHome, fonts)
+        fontLoader = FontLoader(fontLoaderRoot, fonts)
     }
 }

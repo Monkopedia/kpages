@@ -31,6 +31,10 @@ plugins {
 
 group = "com.monkopedia"
 
+java {
+    withSourcesJar()
+}
+
 repositories {
     // Use jcenter for resolving dependencies.
     // You can declare any Maven/Ivy/file repository here.
@@ -79,6 +83,13 @@ dependencies {
 
     implementation("com.google.auto.service:auto-service-annotations:1.0-rc7")
     kapt("com.google.auto.service:auto-service:1.0-rc7")
+    dokkaJavadocPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.4.10.2")
+}
+
+val javadocJar = tasks.create("javadocJar", Jar::class) {
+    dependsOn(tasks["dokkaJavadoc"])
+    archiveClassifier.set("javadoc")
+    from(File(project.buildDir, "dokka/javadoc"))
 }
 
 publishing {
@@ -93,6 +104,7 @@ publishing {
     }
     publications.all {
         if (this !is MavenPublication) return@all
+        artifact(javadocJar)
         pom {
             name.set("KPages")
             description.set("A multi-platform library for managing navigation/routing")

@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:OptIn(ExperimentalContracts::class)
+
 package com.monkopedia.lanterna
 
 import com.googlecode.lanterna.TerminalSize
@@ -147,7 +149,6 @@ class BorderHolder(val border: Border) : ComponentHolder {
     }
 }
 
-@OptIn(ExperimentalContracts::class)
 @LanternaUi
 inline fun Screen.screenWindow(
     gui: MultiWindowTextGUI,
@@ -178,6 +179,9 @@ inline fun MultiWindowTextGUI.window(
     centered: Boolean = false,
     init: WindowHolder.() -> Unit
 ): ObservableWindow {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+    }
     return ObservableWindow().also {
         it.theme = Lanterna.gui.theme
         log("Open window")
@@ -196,6 +200,9 @@ inline fun MultiWindowTextGUI.window(
 
 @LanternaUi
 inline fun buildViews(init: ComponentHolder.() -> Unit): Collection<Component> {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+    }
     val components = mutableListOf<Component>()
     object : ComponentHolder {
         override fun addComponent(component: Component) {
@@ -209,8 +216,11 @@ inline fun buildViews(init: ComponentHolder.() -> Unit): Collection<Component> {
 @LanternaUi
 inline fun ComponentHolder.horizontal(
     init: LinearPanelHolder<DynamicHorizontalLinearLayout>.() -> Unit = {}
-) =
-    CachingPanel().also {
+): CachingPanel {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+    }
+    return CachingPanel().also {
         log("Open horizontal")
         if (DEBUG_VIEWS) logIndent++
         val dynamicLinearLayout = DynamicLinearLayout(Direction.HORIZONTAL, it)
@@ -220,9 +230,13 @@ inline fun ComponentHolder.horizontal(
         if (DEBUG_VIEWS) logIndent--
         log("Close horizontal")
     }
+}
 
 @LanternaUi
 inline fun CachingPanel.buildUi(init: LinearPanelHolder<DynamicLayoutManager<*>>.() -> Unit = {}) {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+    }
     val layout = layoutManager as DynamicLayoutManager<*>
     LinearPanelHolder(this, layout).init()
     layout.requestLayout()
@@ -231,15 +245,20 @@ inline fun CachingPanel.buildUi(init: LinearPanelHolder<DynamicLayoutManager<*>>
 @LanternaUi
 inline fun ComponentHolder.vertical(
     init: LinearPanelHolder<DynamicVerticalLinearLayout>.() -> Unit
-) = CachingPanel().also {
-    log("Open vertical")
-    if (DEBUG_VIEWS) logIndent++
-    val dynamicLinearLayout = DynamicLinearLayout(Direction.VERTICAL, it)
-    it.layoutManager = dynamicLinearLayout
-    LinearPanelHolder(it, dynamicLinearLayout as DynamicVerticalLinearLayout).init()
-    addComponent(it)
-    if (DEBUG_VIEWS) logIndent--
-    log("Close vertical")
+): CachingPanel {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+    }
+    return CachingPanel().also {
+        log("Open vertical")
+        if (DEBUG_VIEWS) logIndent++
+        val dynamicLinearLayout = DynamicLinearLayout(Direction.VERTICAL, it)
+        it.layoutManager = dynamicLinearLayout
+        LinearPanelHolder(it, dynamicLinearLayout as DynamicVerticalLinearLayout).init()
+        addComponent(it)
+        if (DEBUG_VIEWS) logIndent--
+        log("Close vertical")
+    }
 }
 
 @LanternaUi
@@ -247,6 +266,9 @@ inline fun ComponentHolder.grid(
     cols: Int,
     init: LinearPanelHolder<DynamicGridLayout>.() -> Unit
 ): Panel {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+    }
     return CachingPanel().also {
         log("Open grid")
         if (DEBUG_VIEWS) logIndent++
@@ -260,19 +282,27 @@ inline fun ComponentHolder.grid(
 }
 
 @LanternaUi
-inline fun ComponentHolder.frame(init: FramePanelHolder.() -> Unit) = CachingPanel().also {
-    log("Open frame")
-    if (DEBUG_VIEWS) logIndent++
-    val dynamicFrameLayout = DynamicFrameLayout(it)
-    it.layoutManager = dynamicFrameLayout
-    FramePanelHolder(it, dynamicFrameLayout).init()
-    addComponent(it)
-    if (DEBUG_VIEWS) logIndent--
-    log("Close frame")
+inline fun ComponentHolder.frame(init: FramePanelHolder.() -> Unit): CachingPanel {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+    }
+    return CachingPanel().also {
+        log("Open frame")
+        if (DEBUG_VIEWS) logIndent++
+        val dynamicFrameLayout = DynamicFrameLayout(it)
+        it.layoutManager = dynamicFrameLayout
+        FramePanelHolder(it, dynamicFrameLayout).init()
+        addComponent(it)
+        if (DEBUG_VIEWS) logIndent--
+        log("Close frame")
+    }
 }
 
 @LanternaUi
 inline fun ComponentHolder.scroll(init: ScrollHolder.() -> Unit): ScrollComponent {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+    }
     return ScrollComponent().also {
         log("Open vertical")
         if (DEBUG_VIEWS) logIndent++
@@ -298,6 +328,9 @@ inline fun ComponentHolder.border(
     type: BorderType = BorderType.SINGLE_LINE,
     init: BorderHolder.() -> Unit
 ): Border {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+    }
     return type.factory(title).also {
         log("Open border")
         if (DEBUG_VIEWS) logIndent++

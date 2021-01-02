@@ -43,8 +43,8 @@ actual external interface SelectionPreferenceProps<T : SelectionOption> : Prefer
     actual var options: List<T>?
 }
 
-actual external interface SelectionPreferenceState<T : SelectionOption> : RState {
-    actual var selection: T?
+external interface SelectionPreferenceState<T : SelectionOption> : RState {
+    var selection: T?
 }
 
 class SelectionPreference<T : SelectionOption> :

@@ -52,7 +52,7 @@ kotlin {
             }
         }
     }
-    jvm()
+    jvm().withJava()
     sourceSets["commonMain"].dependencies {
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0")
@@ -75,6 +75,7 @@ kotlin {
         implementation(npm("react-dom", "~16.13.1"))
     }
     sourceSets["jvmMain"].dependencies {
+        api(project(":lanterna-ext"))
     }
 }
 val dokkaJavadoc = tasks.create("dokkaJavadocCustom", org.jetbrains.dokka.gradle.DokkaTask::class) {

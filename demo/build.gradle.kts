@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackOutput.Target
 
 plugins {
     kotlin("multiplatform")
+    application
 }
 
 version = "0.1"
@@ -41,8 +42,18 @@ kotlin {
             }
         }
     }
+    jvm {
+        withJava()
+    }
     sourceSets["commonMain"].dependencies {
         implementation(project(":kpages"))
+    }
+    sourceSets["jvmMain"].dependencies {
+        implementation(project(":lanterna-ext"))
+        implementation("org.slf4j:slf4j-api:1.6.1")
+        implementation("ch.qos.logback:logback-classic:1.2.3")
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
     }
     sourceSets["jsMain"].dependencies {
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
@@ -65,7 +76,11 @@ kotlin {
         implementation(npm("react", "~16.13.1"))
         implementation(npm("react-dom", "~16.13.1"))
     }
-    sourceSets["jsMain"].dependencies {
+    sourceSets["jsTest"].dependencies {
         implementation("org.jetbrains.kotlin:kotlin-test-js")
     }
+}
+
+application {
+    mainClassName = "com.monkopedia.kpages.demo.DemoKt"
 }

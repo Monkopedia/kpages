@@ -36,8 +36,8 @@ actual external interface SwitchPreferenceProps : PreferenceProps {
     actual var onChange: ((Boolean) -> Unit)?
 }
 
-actual external interface SwitchPreferenceState : RState {
-    actual var selected: Boolean?
+external interface SwitchPreferenceState : RState {
+    var selected: Boolean?
 }
 
 class SwitchPreference : PreferenceBase<SwitchPreferenceProps, SwitchPreferenceState>() {

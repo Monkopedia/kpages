@@ -33,7 +33,6 @@ expect inline fun PreferenceBuilder.preference(noinline handler: PreferenceProps
 
 expect interface PreferenceCategoryProps {
     var title: String?
-    var children: ((PreferenceBuilder) -> Unit)?
 }
 
 expect inline fun PreferenceBuilder.preferenceCategory(
@@ -62,9 +61,9 @@ inline fun <T : SelectionOption> SelectionPreferenceProps<T>.option(t: T) {
     options = (options ?: emptyList()) + t
 }
 
-expect interface SelectionPreferenceState<T : SelectionOption> {
-    var selection: T?
-}
+//expect interface SelectionPreferenceState<T : SelectionOption> {
+//    var selection: T?
+//}
 
 expect inline fun <reified T : SelectionOption> PreferenceBuilder.selectionPreference(
     noinline handler: SelectionPreferenceProps<T>.() -> Unit = {}
@@ -74,9 +73,9 @@ expect interface SwitchPreferenceProps : PreferenceProps {
     var onChange: ((Boolean) -> Unit)?
 }
 
-expect interface SwitchPreferenceState {
-    var selected: Boolean?
-}
+//expect interface SwitchPreferenceState {
+//    var selected: Boolean?
+//}
 
 expect inline fun PreferenceBuilder.switchPreference(
     noinline handler: SwitchPreferenceProps.() -> Unit = {}
@@ -87,9 +86,9 @@ expect interface SwitchPreferenceCategoryProps : PreferenceCategoryProps {
     var onChange: ((Boolean) -> Unit)?
 }
 
-expect interface SwitchPreferenceCategoryState {
-    var selected: Boolean?
-}
+//expect interface SwitchPreferenceCategoryState {
+//    var selected: Boolean?
+//}
 
 expect inline fun PreferenceBuilder.switchPreferenceCategory(
     noinline handler: SwitchPreferenceCategoryProps.() -> Unit = {},

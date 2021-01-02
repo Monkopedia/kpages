@@ -15,5 +15,15 @@
  */
 package com.monkopedia.kpages
 
-actual abstract class ViewControllerFactory
-actual class Navigator
+import com.monkopedia.lanterna.navigation.Navigation
+import com.monkopedia.lanterna.navigation.Screen
+
+inline fun ViewControllerFactory(crossinline factory: (Navigation) -> Screen) =
+    object : ViewControllerFactory() {
+        override fun create(navigation: Navigation): Screen = factory(navigation)
+    }
+
+actual abstract class ViewControllerFactory {
+    abstract fun create(navigation: Navigation): Screen
+}
+actual typealias Navigator = Navigation

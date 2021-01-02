@@ -137,7 +137,7 @@ interface Selectable {
     var selected: Boolean
 
     /**
-     * Called before any interacitons with selected/onFire in case the receiver wants it.
+     * Called before any interactions with selected/onFire in case the receiver wants it.
      */
     fun setSelectionManager(manager: SelectionManager) {
     }

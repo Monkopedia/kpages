@@ -16,6 +16,8 @@
 package com.monkopedia.kpages.preferences
 
 import com.monkopedia.kpages.ViewControllerFactory
+import com.monkopedia.lanterna.navigation.Navigation
+import com.monkopedia.lanterna.navigation.Screen
 
 actual interface PreferenceBaseProps {
     actual var onClick: ((Any) -> Unit)?
@@ -28,29 +30,41 @@ actual interface PreferenceProps : PreferenceBaseProps {
 
 actual class PreferenceScreen actual constructor(
     title: String,
-    preferenceBuilder: PreferenceBuilder.() -> Unit
-) : ViewControllerFactory()
+    private val preferenceBuilder: PreferenceBuilder.() -> Unit
+) : ViewControllerFactory() {
+    override fun create(navigation: Navigation): Screen {
+        return JvmPreferenceScreen(navigation, PreferenceBuilder().also(preferenceBuilder))
+    }
+}
+
 actual inline fun PreferenceBuilder.preference(noinline handler: PreferenceProps.() -> Unit) {
+    add(createPreferenceProps().also(handler))
 }
 
 actual interface PreferenceCategoryProps {
     actual var title: String?
-    actual var children: ((PreferenceBuilder) -> Unit)?
+    val builder: PreferenceBuilder
 }
 
 actual inline fun PreferenceBuilder.preferenceCategory(
     crossinline handler: PreferenceCategoryProps.() -> Unit,
     crossinline builder: PreferenceBuilder.() -> Unit
 ) {
+    val props = createCategory()
+    props.handler()
+    props.builder.builder()
+    add(props)
 }
 
 actual inline fun PreferenceBuilder.preferenceCategory(
     title: String,
     crossinline builder: PreferenceBuilder.() -> Unit
 ) {
+    val props = createCategory()
+    props.title = title
+    props.builder.builder()
+    add(props)
 }
-
-actual class PreferenceBuilder
 
 actual interface SelectionOption {
     actual var label: String
@@ -62,40 +76,38 @@ actual interface SelectionPreferenceProps<T : SelectionOption> : PreferenceProps
     actual var options: List<T>?
 }
 
-actual interface SelectionPreferenceState<T : SelectionOption> {
-    actual var selection: T?
-}
 
 actual inline fun <reified T : SelectionOption> PreferenceBuilder.selectionPreference(
     noinline handler: SelectionPreferenceProps<T>.() -> Unit
-) {}
+) {
+    add(createSelectionPreferenceProps<T>().also(handler))
+}
 
 actual interface SwitchPreferenceProps : PreferenceProps {
     actual var initialState: Boolean?
     actual var onChange: ((Boolean) -> Unit)?
 }
 
-actual interface SwitchPreferenceState {
-    actual var selected: Boolean?
-}
 
 actual inline fun PreferenceBuilder.switchPreference(
     noinline handler: SwitchPreferenceProps.() -> Unit
-) {}
+) {
+    add(createSwitchPreferenceProps().also(handler))
+}
 
 actual interface SwitchPreferenceCategoryProps : PreferenceCategoryProps {
     actual var initialState: Boolean?
     actual var onChange: ((Boolean) -> Unit)?
 }
 
-actual interface SwitchPreferenceCategoryState {
-    actual var selected: Boolean?
-}
-
 actual inline fun PreferenceBuilder.switchPreferenceCategory(
     noinline handler: SwitchPreferenceCategoryProps.() -> Unit,
     crossinline builder: PreferenceBuilder.() -> Unit
 ) {
+    add(createSwitchPreferenceCategoryProps().apply {
+        handler()
+        this.builder.builder()
+    })
 }
 
 actual inline fun PreferenceBuilder.switchPreferenceCategory(
@@ -104,4 +116,10 @@ actual inline fun PreferenceBuilder.switchPreferenceCategory(
     noinline onChange: ((Boolean) -> Unit)?,
     crossinline builder: PreferenceBuilder.() -> Unit
 ) {
+    add(createSwitchPreferenceCategoryProps().apply {
+        this.title = title
+        this.initialState = initialState
+        this.onChange = onChange
+        this.builder.builder()
+    })
 }

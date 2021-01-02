@@ -32,8 +32,8 @@ actual external interface SwitchPreferenceCategoryProps : PreferenceCategoryProp
     actual var onChange: ((Boolean) -> Unit)?
 }
 
-actual external interface SwitchPreferenceCategoryState : RState {
-    actual var selected: Boolean?
+external interface SwitchPreferenceCategoryState : RState {
+    var selected: Boolean?
 }
 
 class SwitchPreferenceCategory :
