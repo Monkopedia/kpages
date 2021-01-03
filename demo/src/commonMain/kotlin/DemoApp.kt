@@ -18,12 +18,14 @@ package com.monkopedia.kpages.demo
 import com.monkopedia.kpages.KPagesApp
 import com.monkopedia.kpages.RouteBuilder
 import com.monkopedia.kpages.preferences.PreferenceDemoScreen
+import com.monkopedia.kpages.preferences.PreferenceDemoScreen_2
 
 class DemoApp : KPagesApp() {
 
     override fun RouteBuilder.routes() {
         prefixRoute("/theme_demo", ThemeDemoFactory)
         route("/preference_demo", PreferenceDemoScreen)
+        route("/preference_demo_2", PreferenceDemoScreen_2)
         prefixRoute("/", RootDemoFactory)
     }
 }

@@ -21,6 +21,8 @@ import com.ccfraser.muirwik.components.mSelect
 import com.ccfraser.muirwik.components.mTypography
 import com.ccfraser.muirwik.components.menu.mMenuItem
 import com.ccfraser.muirwik.components.targetValue
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.css.Display
 import kotlinx.css.LinearDimension
 import kotlinx.css.display
@@ -39,7 +41,7 @@ actual external interface SelectionOption {
 
 actual external interface SelectionPreferenceProps<T : SelectionOption> : PreferenceProps {
     actual var initialState: T?
-    actual var onChange: ((T?) -> Unit)?
+    actual var onChange: (suspend (T?) -> Unit)?
     actual var options: List<T>?
 }
 
@@ -75,7 +77,9 @@ class SelectionPreference<T : SelectionOption> :
                 onChange = { e, c ->
                     setState {
                         selection = props.options?.get(e.targetValue.toString().toInt())
-                        props.onChange?.invoke(selection)
+                        GlobalScope.launch {
+                            props.onChange?.invoke(selection)
+                        }
                     }
                 }
             ) {

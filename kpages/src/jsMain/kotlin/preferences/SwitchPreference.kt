@@ -19,6 +19,8 @@ import com.ccfraser.muirwik.components.MTypographyColor
 import com.ccfraser.muirwik.components.MTypographyVariant
 import com.ccfraser.muirwik.components.mSwitch
 import com.ccfraser.muirwik.components.mTypography
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.css.Display
 import kotlinx.css.LinearDimension
 import kotlinx.css.display
@@ -33,7 +35,7 @@ import styled.styledDiv
 
 actual external interface SwitchPreferenceProps : PreferenceProps {
     actual var initialState: Boolean?
-    actual var onChange: ((Boolean) -> Unit)?
+    actual var onChange: (suspend (Boolean) -> Unit)?
 }
 
 external interface SwitchPreferenceState : RState {
@@ -67,7 +69,9 @@ class SwitchPreference : PreferenceBase<SwitchPreferenceProps, SwitchPreferenceS
                 onChange = { e, b ->
                     setState {
                         selected = b
-                        props.onChange?.invoke(b)
+                        GlobalScope.launch {
+                            props.onChange?.invoke(b)
+                        }
                     }
                 }
             ) {
@@ -88,7 +92,9 @@ actual inline fun PreferenceBuilder.switchPreference(
             onClick = {
                 (it as SwitchPreference).setState {
                     selected = !(selected ?: it.props.initialState ?: false)
-                    it.props.onChange?.invoke(selected!!)
+                    GlobalScope.launch {
+                        it.props.onChange?.invoke(selected!!)
+                    }
                 }
             }
             handler()

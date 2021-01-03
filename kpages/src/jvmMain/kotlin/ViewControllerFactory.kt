@@ -17,13 +17,35 @@ package com.monkopedia.kpages
 
 import com.monkopedia.lanterna.navigation.Navigation
 import com.monkopedia.lanterna.navigation.Screen
+import java.lang.IllegalArgumentException
 
-inline fun ViewControllerFactory(crossinline factory: (Navigation) -> Screen) =
+inline fun ViewControllerFactory(crossinline factory: (Navigator) -> Screen) =
     object : ViewControllerFactory() {
-        override fun create(navigation: Navigation): Screen = factory(navigation)
+        override fun create(navigation: Navigator): Screen = factory(navigation)
     }
 
 actual abstract class ViewControllerFactory {
-    abstract fun create(navigation: Navigation): Screen
+    abstract fun create(navigation: Navigator): Screen
 }
-actual typealias Navigator = Navigation
+
+fun KPagesApp.navigator(navigation: Navigation): Navigator {
+    return Navigator(this, navigation)
+}
+
+actual class Navigator(private val app: KPagesApp, internal val navigation: Navigation) {
+    var paths = mutableListOf("/")
+    actual val path: String
+        get() = paths.last()
+
+    actual suspend fun goBack() {
+        paths.removeLast()
+        navigation.popScreen()
+    }
+
+    actual suspend fun push(path: String) {
+        val resolved = app.resolve(path)
+            ?: throw IllegalArgumentException("No path for $path")
+        paths.add(path)
+        navigation.open(resolved.create(this))
+    }
+}

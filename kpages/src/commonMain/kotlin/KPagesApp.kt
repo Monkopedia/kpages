@@ -21,6 +21,21 @@ abstract class KPagesApp {
     internal val routes = mutableListOf<Route>()
     abstract fun RouteBuilder.routes()
 
+    fun resolve(path: String): ViewControllerFactory? {
+        for (r in routes) {
+            if (r.exact) {
+                if (path == r.path) {
+                    return r.factory
+                }
+            } else {
+                if (path.startsWith(r.path)) {
+                    return r.factory
+                }
+            }
+        }
+        return null
+    }
+
     init {
         @Suppress("LeakingThis")
         RouteBuilder(this).routes()

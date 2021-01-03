@@ -18,6 +18,9 @@ package com.monkopedia.kpages.preferences
 import com.ccfraser.muirwik.components.MTypographyVariant
 import com.ccfraser.muirwik.components.mSwitch
 import com.ccfraser.muirwik.components.mTypography
+import com.monkopedia.kpages.Navigator
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.css.LinearDimension
 import kotlinx.css.marginLeft
 import kotlinx.css.marginRight
@@ -29,7 +32,7 @@ import styled.css
 
 actual external interface SwitchPreferenceCategoryProps : PreferenceCategoryProps {
     actual var initialState: Boolean?
-    actual var onChange: ((Boolean) -> Unit)?
+    actual var onChange: (suspend (Boolean) -> Unit)?
 }
 
 external interface SwitchPreferenceCategoryState : RState {
@@ -50,7 +53,9 @@ class SwitchPreferenceCategory :
             onChange = { e, b ->
                 setState {
                     selected = b
-                    props.onChange?.invoke(b)
+                    GlobalScope.launch {
+                        props.onChange?.invoke(b)
+                    }
                 }
             }
         ) {
@@ -79,7 +84,7 @@ actual inline fun PreferenceBuilder.switchPreferenceCategory(
 actual inline fun PreferenceBuilder.switchPreferenceCategory(
     title: String,
     initialState: Boolean,
-    noinline onChange: ((Boolean) -> Unit)?,
+    noinline onChange: (suspend (Boolean) -> Unit)?,
     crossinline builder: PreferenceBuilder.() -> Unit
 ) {
     base.child(SwitchPreferenceCategory::class) {

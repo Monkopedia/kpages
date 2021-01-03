@@ -23,6 +23,8 @@ import com.ccfraser.muirwik.components.mTypography
 import com.ccfraser.muirwik.components.table.MTableCellPadding
 import com.ccfraser.muirwik.components.table.mTableCell
 import com.ccfraser.muirwik.components.table.mTableRow
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.css.Align
 import kotlinx.css.Display
 import kotlinx.css.FlexDirection
@@ -46,7 +48,7 @@ import styled.css
 import styled.styledDiv
 
 actual external interface PreferenceBaseProps : RProps {
-    actual var onClick: ((Any) -> Unit)?
+    actual var onClick: (suspend (Any) -> Unit)?
 }
 
 actual external interface PreferenceProps : PreferenceBaseProps {
@@ -83,7 +85,11 @@ abstract class PreferenceBase<P : PreferenceBaseProps, S : RState> : RComponent<
                             mButton(
                                 "",
                                 variant = MButtonVariant.text,
-                                onClick = { listener(this@PreferenceBase) }
+                                onClick = {
+                                    GlobalScope.launch {
+                                        listener(this@PreferenceBase)
+                                    }
+                                }
                             ) {
                                 css {
                                     height = 100.pct

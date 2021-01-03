@@ -15,7 +15,7 @@
  */
 package com.monkopedia.kpages.preferences
 
-val PreferenceDemoScreen = PreferenceScreen("Preference demo") {
+val PreferenceDemoScreen = PreferenceScreen("Preference demo") { nav ->
     preferenceCategory("First category") {
         preference {
             title = "First item"
@@ -29,6 +29,7 @@ val PreferenceDemoScreen = PreferenceScreen("Preference demo") {
             subtitle = "With a subtitle"
             onClick = {
                 println("Common code click")
+                nav.push("/preference_demo_2")
             }
         }
         switchPreference {
@@ -56,6 +57,17 @@ val PreferenceDemoScreen = PreferenceScreen("Preference demo") {
             option(BasicSelect("Third"))
             onChange = {
                 println("Selection: $it")
+            }
+        }
+    }
+}
+
+val PreferenceDemoScreen_2 = PreferenceScreen("Preference demo 2") { nav ->
+    preferenceCategory("Second screen") {
+        preference {
+            title = "Go back"
+            onClick = {
+                nav.goBack()
             }
         }
     }

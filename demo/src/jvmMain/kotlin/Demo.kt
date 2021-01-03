@@ -1,13 +1,10 @@
 package com.monkopedia.kpages.demo
 
-import com.monkopedia.kpages.preferences.PreferenceDemoScreen
+import com.monkopedia.kpages.navigator
 import com.monkopedia.lanterna.Lanterna
 import com.monkopedia.lanterna.ThemeData
 import com.monkopedia.lanterna.navigation.Navigation
 import com.monkopedia.lanterna.runGuiThread
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
@@ -28,17 +25,17 @@ class Demo {
         )
         val navigation = Navigation(Lanterna.gui)
         runBlocking {
-
+            val app = DemoApp()
             println("Open screen!")
-            navigation.open(PreferenceDemoScreen.create(navigation))
+            app.navigator(navigation).push("/")
             println("Done screen!")
 
-        runGuiThread(true)
-        LoggerFactory.getLogger(Demo::class.java).debug("Shutting down main thread")
+            runGuiThread(true)
+            LoggerFactory.getLogger(Demo::class.java).debug("Shutting down main thread")
             navigation.destroy()
-        Lanterna.screen.close()
-        Lanterna.terminal.close()
-        exitProcess(1)
+            Lanterna.screen.close()
+            Lanterna.terminal.close()
+            exitProcess(1)
         }
 
     }

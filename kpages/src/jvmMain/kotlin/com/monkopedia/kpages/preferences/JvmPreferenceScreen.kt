@@ -13,8 +13,11 @@ import com.monkopedia.dynamiclayout.Fill
 import com.monkopedia.dynamiclayout.SizeSpec
 import com.monkopedia.dynamiclayout.WeightedLayoutParams
 import com.monkopedia.dynamiclayout.Wrap
+import com.monkopedia.kpages.Navigator
 import com.monkopedia.lanterna.ConsumeEvent
 import com.monkopedia.lanterna.EventMatcher
+import com.monkopedia.lanterna.EventMatcher.Companion.matcher
+import com.monkopedia.lanterna.EventMatcher.Companion.or
 import com.monkopedia.lanterna.FocusResult
 import com.monkopedia.lanterna.LinearPanelHolder
 import com.monkopedia.lanterna.Selectable
@@ -25,13 +28,16 @@ import com.monkopedia.lanterna.horizontal
 import com.monkopedia.lanterna.label
 import com.monkopedia.lanterna.navigation.Navigation
 import com.monkopedia.lanterna.navigation.Screen
+import com.monkopedia.lanterna.on
 import com.monkopedia.lanterna.space
 import com.monkopedia.lanterna.spannable.EnableSGRSpan
 import com.monkopedia.lanterna.spannable.SpannableLabel
 import com.monkopedia.lanterna.spannable.Spanned
 import com.monkopedia.lanterna.vertical
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
-class JvmPreferenceScreen(navigation: Navigation, private val root: PreferenceBuilder) :
+class JvmPreferenceScreen(private val navigator: Navigator, private val root: PreferenceBuilder) :
     Screen("JvmPreferenceScreen") {
 
     override fun WindowHolder.createWindow() {
@@ -50,7 +56,7 @@ class JvmPreferenceScreen(navigation: Navigation, private val root: PreferenceBu
     }
     private val selectionManager by lazy {
         SelectionManager(
-            navigation,
+            navigator.navigation,
             EventMatcher.keyType(KeyType.Enter),
             EventMatcher.keyType(KeyType.ArrowDown),
             EventMatcher.keyType(KeyType.ArrowUp)
@@ -60,8 +66,13 @@ class JvmPreferenceScreen(navigation: Navigation, private val root: PreferenceBu
     override suspend fun onCreate() {
         super.onCreate()
         focusManager.defaultHandler = selectionManager
+        focusManager.keymap.create("Back") {
+            launch {
+                navigator.goBack()
+            }
+            ConsumeEvent
+        } on (KeyType.Escape.matcher() or KeyType.Backspace.matcher())
         updateSelectables()
-        println("JvmPreerenceScreenCreate")
     }
 
     internal fun updateSelectables() {
@@ -133,7 +144,7 @@ private class SwitchPreferenceImpl : CachingPanel(), SwitchPreferenceProps, Pref
             field = value
             state = value!!
         }
-    override var onChange: ((Boolean) -> Unit)? = null
+    override var onChange: (suspend (Boolean) -> Unit)? = null
         set(value) {
             field = value
             screen?.updateSelectables()
@@ -146,8 +157,10 @@ private class SwitchPreferenceImpl : CachingPanel(), SwitchPreferenceProps, Pref
     override fun onFire(navigation: Navigation): FocusResult {
         state = !state
         rebind()
-        onClick?.invoke(navigation)
-        onChange?.invoke(state)
+        GlobalScope.launch {
+            onClick?.invoke(navigation)
+            onChange?.invoke(state)
+        }
         return ConsumeEvent
     }
 
@@ -167,7 +180,7 @@ private class SwitchPreferenceImpl : CachingPanel(), SwitchPreferenceProps, Pref
             field = value
             rebind()
         }
-    override var onClick: ((Any) -> Unit)? = null
+    override var onClick: (suspend (Any) -> Unit)? = null
         set(value) {
             field = value
             screen?.updateSelectables()
@@ -209,7 +222,7 @@ private class SelectionPreferenceImpl<T : SelectionOption> : CachingPanel(),
             state = value
             rebind()
         }
-    override var onChange: ((T?) -> Unit)? = null
+    override var onChange: (suspend (T?) -> Unit)? = null
         set(value) {
             field = value
             screen?.updateSelectables()
@@ -247,8 +260,10 @@ private class SelectionPreferenceImpl<T : SelectionOption> : CachingPanel(),
             else options!![index + 1]
         }
         rebind()
-        onClick?.invoke(navigation)
-        onChange?.invoke(state)
+        GlobalScope.launch {
+            onClick?.invoke(navigation)
+            onChange?.invoke(state)
+        }
         return ConsumeEvent
     }
 
@@ -268,7 +283,7 @@ private class SelectionPreferenceImpl<T : SelectionOption> : CachingPanel(),
             field = value
             rebind()
         }
-    override var onClick: ((Any) -> Unit)? = null
+    override var onClick: (suspend (Any) -> Unit)? = null
         set(value) {
             field = value
             screen?.updateSelectables()
@@ -314,7 +329,9 @@ private class PreferenceImpl : CachingPanel(), PreferenceProps, PreferenceView {
         get() = onClick != null
 
     override fun onFire(navigation: Navigation): FocusResult {
-        onClick?.invoke(navigation)
+        GlobalScope.launch {
+            onClick?.invoke(navigation)
+        }
         return ConsumeEvent
     }
 
@@ -334,7 +351,7 @@ private class PreferenceImpl : CachingPanel(), PreferenceProps, PreferenceView {
             field = value
             rebind()
         }
-    override var onClick: ((Any) -> Unit)? = null
+    override var onClick: (suspend (Any) -> Unit)? = null
         set(value) {
             field = value
             screen?.updateSelectables()
@@ -411,7 +428,7 @@ private class SwitchPreferenceCategoryImpl : CachingPanel(), SwitchPreferenceCat
             field = value
             state = value!!
         }
-    override var onChange: ((Boolean) -> Unit)? = null
+    override var onChange: (suspend (Boolean) -> Unit)? = null
         set(value) {
             field = value
             screen?.updateSelectables()
@@ -442,7 +459,9 @@ private class SwitchPreferenceCategoryImpl : CachingPanel(), SwitchPreferenceCat
     override fun onFire(navigation: Navigation): FocusResult {
         state = !state
         rebind()
-        onChange?.invoke(state)
+        GlobalScope.launch {
+            onChange?.invoke(state)
+        }
         return ConsumeEvent
     }
 

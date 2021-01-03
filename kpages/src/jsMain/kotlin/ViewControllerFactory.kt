@@ -16,6 +16,7 @@
 package com.monkopedia.kpages
 
 import com.ccfraser.muirwik.components.child
+import kotlinx.browser.window
 import kotlin.reflect.KClass
 import react.RBuilder
 import react.RComponent
@@ -37,4 +38,20 @@ fun <T : Any> JsClass<T>.newInstance(): T {
     return callCtor(asDynamic()) as T
 }
 
-actual class Navigator
+
+actual class Navigator {
+    actual val path: String
+        get() = window.location.pathname
+
+    actual suspend fun goBack() {
+        window.history.back()
+    }
+
+    actual suspend fun push(path: String) {
+        window.open(path, "_self")
+    }
+
+    companion object {
+        val INSTANCE = Navigator()
+    }
+}

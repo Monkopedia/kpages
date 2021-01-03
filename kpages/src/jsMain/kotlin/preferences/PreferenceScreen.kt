@@ -15,6 +15,7 @@
  */
 package com.monkopedia.kpages.preferences
 
+import com.monkopedia.kpages.Navigator
 import com.monkopedia.kpages.ViewControllerFactory
 import kotlinx.css.paddingLeft
 import kotlinx.css.paddingRight
@@ -30,7 +31,7 @@ import styled.styledDiv
 
 actual class PreferenceScreen actual constructor(
     private val title: String,
-    private val preferenceBuilder: PreferenceBuilder.() -> Unit
+    private val preferenceBuilder: PreferenceBuilder.(Navigator) -> Unit
 ) : ViewControllerFactory() {
     override val componentFactory: RBuilder.() -> ReactElement?
         get() = {
@@ -38,14 +39,16 @@ actual class PreferenceScreen actual constructor(
                 attrs {
                     title = title
                     preferences = preferenceBuilder
+                    navigator = Navigator.INSTANCE
                 }
             }
         }
 }
 
 external interface PreferenceComponentProps : RProps {
-    var preferences: ((PreferenceBuilder) -> Unit)?
+    var preferences: ((PreferenceBuilder, Navigator) -> Unit)?
     var title: String?
+    var navigator: Navigator?
 }
 
 class PreferenceComponent(props: PreferenceComponentProps) :
@@ -61,7 +64,7 @@ class PreferenceComponent(props: PreferenceComponentProps) :
                 +(props.title ?: "")
             }
             props.preferences?.let {
-                PreferenceBuilder(this).apply(it)
+                it(PreferenceBuilder(this), props.navigator!!)
             }
         }
     }

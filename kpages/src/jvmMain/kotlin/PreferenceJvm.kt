@@ -15,12 +15,13 @@
  */
 package com.monkopedia.kpages.preferences
 
+import com.monkopedia.kpages.Navigator
 import com.monkopedia.kpages.ViewControllerFactory
 import com.monkopedia.lanterna.navigation.Navigation
 import com.monkopedia.lanterna.navigation.Screen
 
 actual interface PreferenceBaseProps {
-    actual var onClick: ((Any) -> Unit)?
+    actual var onClick: (suspend (Any) -> Unit)?
 }
 
 actual interface PreferenceProps : PreferenceBaseProps {
@@ -30,10 +31,12 @@ actual interface PreferenceProps : PreferenceBaseProps {
 
 actual class PreferenceScreen actual constructor(
     title: String,
-    private val preferenceBuilder: PreferenceBuilder.() -> Unit
+    private val preferenceBuilder: PreferenceBuilder.(Navigator) -> Unit
 ) : ViewControllerFactory() {
-    override fun create(navigation: Navigation): Screen {
-        return JvmPreferenceScreen(navigation, PreferenceBuilder().also(preferenceBuilder))
+    override fun create(navigation: Navigator): Screen {
+        return JvmPreferenceScreen(navigation, PreferenceBuilder().apply {
+            preferenceBuilder(navigation)
+        })
     }
 }
 
@@ -72,7 +75,7 @@ actual interface SelectionOption {
 
 actual interface SelectionPreferenceProps<T : SelectionOption> : PreferenceProps {
     actual var initialState: T?
-    actual var onChange: ((T?) -> Unit)?
+    actual var onChange: (suspend (T?) -> Unit)?
     actual var options: List<T>?
 }
 
@@ -85,7 +88,7 @@ actual inline fun <reified T : SelectionOption> PreferenceBuilder.selectionPrefe
 
 actual interface SwitchPreferenceProps : PreferenceProps {
     actual var initialState: Boolean?
-    actual var onChange: ((Boolean) -> Unit)?
+    actual var onChange: (suspend (Boolean) -> Unit)?
 }
 
 
@@ -97,7 +100,7 @@ actual inline fun PreferenceBuilder.switchPreference(
 
 actual interface SwitchPreferenceCategoryProps : PreferenceCategoryProps {
     actual var initialState: Boolean?
-    actual var onChange: ((Boolean) -> Unit)?
+    actual var onChange: (suspend (Boolean) -> Unit)?
 }
 
 actual inline fun PreferenceBuilder.switchPreferenceCategory(
@@ -113,7 +116,7 @@ actual inline fun PreferenceBuilder.switchPreferenceCategory(
 actual inline fun PreferenceBuilder.switchPreferenceCategory(
     title: String,
     initialState: Boolean,
-    noinline onChange: ((Boolean) -> Unit)?,
+    noinline onChange: (suspend (Boolean) -> Unit)?,
     crossinline builder: PreferenceBuilder.() -> Unit
 ) {
     add(createSwitchPreferenceCategoryProps().apply {

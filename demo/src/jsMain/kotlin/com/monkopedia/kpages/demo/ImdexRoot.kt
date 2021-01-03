@@ -18,10 +18,12 @@ package com.monkopedia.kpages.demo
 import com.monkopedia.kpages.ClassFactory
 import com.monkopedia.kpages.ViewControllerFactory
 import kotlinx.browser.window
+import kotlinx.html.js.onClickFunction
 import react.RBuilder
 import react.RComponent
 import react.RProps
 import react.RState
+import react.dom.a
 import react.dom.div
 
 external interface RootState : RState {
@@ -54,6 +56,14 @@ class ImdexRoot : RComponent<RProps, RootState>() {
 //                        route("/", exact = false) {
         div {
             +"Page: ${window.location}"
+        }
+        a {
+            +"Next page"
+            attrs {
+                onClickFunction = {
+                    window.open("/preference_demo", "_self")
+                }
+            }
         }
 //                        }
 //                    }

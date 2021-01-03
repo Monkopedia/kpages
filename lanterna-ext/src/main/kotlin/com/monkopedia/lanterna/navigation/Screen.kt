@@ -17,12 +17,15 @@ package com.monkopedia.lanterna.navigation
 
 import com.googlecode.lanterna.input.KeyType
 import com.monkopedia.lanterna.Command
+import com.monkopedia.lanterna.EventMatcher
+import com.monkopedia.lanterna.EventMatcher.Companion.and
 import com.monkopedia.lanterna.EventMatcher.Companion.matcher
 import com.monkopedia.lanterna.FocusManager
 import com.monkopedia.lanterna.GUI
 import com.monkopedia.lanterna.NavigateBack
 import com.monkopedia.lanterna.ScreenWindow
 import com.monkopedia.lanterna.WindowHolder
+import com.monkopedia.lanterna.on
 import com.monkopedia.lanterna.screenWindow
 import com.monkopedia.util.exceptionHandler
 import com.monkopedia.util.logger
@@ -32,6 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.system.exitProcess
 
 private val LOGGER = Screen::class.logger
 abstract class Screen(val name: String) : CoroutineScope {
@@ -52,7 +56,11 @@ abstract class Screen(val name: String) : CoroutineScope {
     private var isShowing = false
 
     val focusManager: FocusManager by lazy {
-        FocusManager.of(this)
+        FocusManager.of(this).also {
+            it.keymap.create("Quit") {
+                exitProcess(1)
+            } on (EventMatcher.Companion.CtrlDown and 'c'.matcher())
+        }
     }
     val backCommand: Command by lazy {
         focusManager.keymap.create("Close and go to last screen") {

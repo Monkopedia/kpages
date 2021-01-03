@@ -15,13 +15,14 @@
  */
 package com.monkopedia.kpages.preferences
 
+import com.monkopedia.kpages.Navigator
 import com.monkopedia.kpages.ViewControllerFactory
 
-expect class PreferenceScreen(title: String, preferenceBuilder: PreferenceBuilder.() -> Unit) :
+expect class PreferenceScreen(title: String, preferenceBuilder: PreferenceBuilder.(Navigator) -> Unit) :
     ViewControllerFactory
 
 expect interface PreferenceBaseProps {
-    var onClick: ((Any) -> Unit)?
+    var onClick: (suspend (Any) -> Unit)?
 }
 
 expect interface PreferenceProps : PreferenceBaseProps {
@@ -53,7 +54,7 @@ expect interface SelectionOption {
 
 expect interface SelectionPreferenceProps<T : SelectionOption> : PreferenceProps {
     var initialState: T?
-    var onChange: ((T?) -> Unit)?
+    var onChange: (suspend (T?) -> Unit)?
     var options: List<T>?
 }
 
@@ -70,7 +71,7 @@ expect inline fun <reified T : SelectionOption> PreferenceBuilder.selectionPrefe
 )
 expect interface SwitchPreferenceProps : PreferenceProps {
     var initialState: Boolean?
-    var onChange: ((Boolean) -> Unit)?
+    var onChange: (suspend (Boolean) -> Unit)?
 }
 
 //expect interface SwitchPreferenceState {
@@ -83,7 +84,7 @@ expect inline fun PreferenceBuilder.switchPreference(
 
 expect interface SwitchPreferenceCategoryProps : PreferenceCategoryProps {
     var initialState: Boolean?
-    var onChange: ((Boolean) -> Unit)?
+    var onChange: (suspend (Boolean) -> Unit)?
 }
 
 //expect interface SwitchPreferenceCategoryState {
@@ -98,6 +99,6 @@ expect inline fun PreferenceBuilder.switchPreferenceCategory(
 expect inline fun PreferenceBuilder.switchPreferenceCategory(
     title: String,
     initialState: Boolean = false,
-    noinline onChange: ((Boolean) -> Unit)? = null,
+    noinline onChange: (suspend (Boolean) -> Unit)? = null,
     crossinline builder: PreferenceBuilder.() -> Unit
 )
