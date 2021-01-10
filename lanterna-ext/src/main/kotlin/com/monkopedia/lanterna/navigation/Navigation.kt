@@ -15,7 +15,9 @@
  */
 package com.monkopedia.lanterna.navigation
 
+import com.googlecode.lanterna.gui2.Component
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.monkopedia.dynamiclayout.CachingPanel
 import com.monkopedia.util.exceptionHandler
 import com.monkopedia.util.logger
 import java.io.PrintWriter
@@ -35,6 +37,9 @@ class Navigation(val gui: MultiWindowTextGUI) {
     private val scope = CoroutineScope(dispatcher)
 
     private val backStack = mutableListOf<Screen>()
+
+    val onScreenChangedListeners = mutableListOf<(Screen) -> Unit>()
+
     private var topScreen: Screen? = null
         set(value) {
             LOGGER.info("Navigation: setTopScreen $value $field")
@@ -45,6 +50,9 @@ class Navigation(val gui: MultiWindowTextGUI) {
                 LOGGER.info("Navigation: Hiding $lastWindow, showing $value")
                 lastWindow?.hide(this@Navigation)
                 value?.show(this@Navigation)
+                onScreenChangedListeners.forEach {
+                    it.invoke(value ?: return@launch)
+                }
             }
         }
 
@@ -94,5 +102,35 @@ class Navigation(val gui: MultiWindowTextGUI) {
             it.destroy(this)
         }
         topScreen?.destroy(this)
+    }
+
+    private var currentHeaderContainer: CachingPanel? = null
+    var header: Component? = null
+        set(value) {
+            if (field != null) {
+                currentHeaderContainer?.removeComponent(field)
+            }
+            if (value != null) {
+                currentHeaderContainer?.addComponent(value)
+            }
+            field = value
+        }
+
+    fun attachHeader(container: CachingPanel) {
+        currentHeaderContainer?.let {
+            LOGGER.warn("Header attached already while adding $container")
+            detachHeader(it)
+        }
+        currentHeaderContainer = container
+        header?.addTo(container)
+    }
+
+    fun detachHeader(container: CachingPanel) {
+        container.removeAllComponents()
+        if (currentHeaderContainer != container) {
+            LOGGER.warn("Header $container is not currently attached")
+            return
+        }
+        currentHeaderContainer = null
     }
 }

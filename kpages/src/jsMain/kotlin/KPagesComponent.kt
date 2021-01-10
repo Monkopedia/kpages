@@ -15,10 +15,7 @@
  */
 package com.monkopedia.kpages
 
-import kotlin.reflect.KClass
-import react.Component
 import react.RBuilder
-import react.RComponent
 import react.RProps
 import react.RState
 import react.router.dom.browserRouter
@@ -27,28 +24,39 @@ import react.router.dom.switch
 
 external interface KPagesProps : RProps {
     var app: KPagesApp?
+    var title: Mutable<CharSequence>?
 }
 
-class KPagesComponent : RComponent<KPagesProps, RState>() {
+external interface KPagesState : RState {
+    var title: CharSequence?
+}
+
+class KPagesComponent : LifecycleComponent<KPagesProps, KPagesState>() {
+    private val listenerHolder = LifecycleHolder().also {
+        registerLifecycleAware(it)
+    }
 
     override fun RBuilder.render() {
-        println("Routing: ${props.app}")
         browserRouter {
             switch {
                 val routes = props.app?.routes ?: emptyList()
                 for (route in routes) {
-                    println("Route: $route")
-                    route.factory.cls?.let {
-                        route(
-                            route.path,
-                            it as KClass<out Component<RProps, *>>,
-                            exact = route.exact
-                        )
-                    } ?: route<RProps>(route.path, exact = route.exact) {
-                        route.factory.componentFactory(this)
+                    val factory = route.factory.componentFactory
+                    route<RProps>(route.path, exact = route.exact) {
+                        val currentTitle = Mutable((route.title ?: route.path) as CharSequence)
+                        factory(currentTitle).also {
+                            setTitle(currentTitle)
+                        }
                     }
                 }
             }
+        }
+    }
+
+    private fun setTitle(title: Mutable<CharSequence>) {
+        val mutableTitle = props.title ?: return
+        listenerHolder.lifecycle = title.onValue {
+            mutableTitle.value = it
         }
     }
 }

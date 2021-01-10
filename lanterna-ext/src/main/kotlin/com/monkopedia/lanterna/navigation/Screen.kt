@@ -15,8 +15,11 @@
  */
 package com.monkopedia.lanterna.navigation
 
+import com.googlecode.lanterna.gui2.Component
 import com.googlecode.lanterna.input.KeyType
+import com.monkopedia.dynamiclayout.CachingPanel
 import com.monkopedia.lanterna.Command
+import com.monkopedia.lanterna.ComponentHolder
 import com.monkopedia.lanterna.EventMatcher
 import com.monkopedia.lanterna.EventMatcher.Companion.and
 import com.monkopedia.lanterna.EventMatcher.Companion.matcher
@@ -25,8 +28,13 @@ import com.monkopedia.lanterna.GUI
 import com.monkopedia.lanterna.NavigateBack
 import com.monkopedia.lanterna.ScreenWindow
 import com.monkopedia.lanterna.WindowHolder
+import com.monkopedia.lanterna.buildViews
+import com.monkopedia.lanterna.frame
 import com.monkopedia.lanterna.on
+import com.monkopedia.lanterna.onAttach
+import com.monkopedia.lanterna.onDetach
 import com.monkopedia.lanterna.screenWindow
+import com.monkopedia.lanterna.vertical
 import com.monkopedia.util.exceptionHandler
 import com.monkopedia.util.logger
 import kotlin.coroutines.CoroutineContext
@@ -67,8 +75,13 @@ abstract class Screen(val name: String) : CoroutineScope {
             return@create NavigateBack
         }
     }
+    private val headerView by lazy {
+        buildViews {
+            frame {  }
+        }.first() as CachingPanel
+    }
 
-    abstract fun WindowHolder.createWindow()
+    abstract fun ComponentHolder.createWindow()
 
     internal suspend fun create(navigation: Navigation) {
         LOGGER.info("$this: create")
@@ -78,6 +91,12 @@ abstract class Screen(val name: String) : CoroutineScope {
                 "Screen already created"
             }
             windowImpl = doCreateWindow()
+            window.onAttach {
+                navigation.attachHeader(headerView)
+            }
+            window.onDetach {
+                navigation.detachHeader(headerView)
+            }
             isCreated = true
         }
         launch(coroutineContext) {
@@ -88,7 +107,10 @@ abstract class Screen(val name: String) : CoroutineScope {
 
     open suspend fun doCreateWindow(): ScreenWindow {
         screenWindow(navigation.gui) {
-            this.createWindow()
+            vertical {
+                addComponent(headerView)
+                this.createWindow()
+            }
             return window as ScreenWindow
         }
     }

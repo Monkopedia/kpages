@@ -15,23 +15,35 @@
  */
 package com.monkopedia.kpages
 
-import com.ccfraser.muirwik.components.child
 import kotlinx.browser.window
-import kotlin.reflect.KClass
 import react.RBuilder
 import react.RComponent
+import react.RHandler
+import react.RProps
+import react.rClass
 import react.ReactElement
+import kotlin.reflect.KClass
+
+inline fun factory(noinline f: RBuilder.(Mutable<CharSequence>) -> ReactElement?): ViewControllerFactory {
+    return object : ViewControllerFactory() {
+        override val componentFactory: RBuilder.(Mutable<CharSequence>) -> ReactElement? = f
+    }
+}
 
 actual abstract class ViewControllerFactory {
-    open val cls: KClass<out RComponent<*, *>>? = null
-    abstract val componentFactory: RBuilder.() -> ReactElement?
+    abstract val componentFactory: RBuilder.(Mutable<CharSequence>) -> ReactElement?
 }
 
-open class ClassFactory<T : RComponent<*, *>>(override val cls: KClass<T>) :
-    ViewControllerFactory() {
-    override val componentFactory: RBuilder.() -> ReactElement?
-        get() = { child(cls.js.newInstance()) {} }
-}
+
+inline fun <P: RProps, T : RComponent<P, *>> ClassFactory(cls: KClass<T>, noinline r: RHandler<out RProps> = {}) =
+    factory { cls.rClass.invoke(r).also { child(it) } }
+//open class ClassFactory<T : RComponent<*, *>>(private val cls: KClass<T>) :
+//    ViewControllerFactory() {
+//    override val componentFactory: RBuilder.() -> ReactElement? = {
+//        println("Class factory")
+//        child(cls.js.newInstance()) {}
+//    }
+//}
 
 fun <T : Any> JsClass<T>.newInstance(): T {
     inline fun callCtor(ctor: dynamic) = js("new ctor()")

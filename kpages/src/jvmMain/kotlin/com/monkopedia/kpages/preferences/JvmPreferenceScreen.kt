@@ -14,6 +14,7 @@ import com.monkopedia.dynamiclayout.SizeSpec
 import com.monkopedia.dynamiclayout.WeightedLayoutParams
 import com.monkopedia.dynamiclayout.Wrap
 import com.monkopedia.kpages.Navigator
+import com.monkopedia.lanterna.ComponentHolder
 import com.monkopedia.lanterna.ConsumeEvent
 import com.monkopedia.lanterna.EventMatcher
 import com.monkopedia.lanterna.EventMatcher.Companion.matcher
@@ -40,7 +41,7 @@ import kotlinx.coroutines.launch
 class JvmPreferenceScreen(private val navigator: Navigator, private val root: PreferenceBuilder) :
     Screen("JvmPreferenceScreen") {
 
-    override fun WindowHolder.createWindow() {
+    override fun ComponentHolder.createWindow() {
         vertical {
             border {
                 label("Preference screen")

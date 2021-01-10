@@ -1,10 +1,17 @@
 package com.monkopedia.kpages.demo
 
+import com.monkopedia.dynamiclayout.Gravity
+import com.monkopedia.dynamiclayout.Wrap
 import com.monkopedia.kpages.navigator
 import com.monkopedia.lanterna.Lanterna
 import com.monkopedia.lanterna.ThemeData
+import com.monkopedia.lanterna.border
+import com.monkopedia.lanterna.buildViews
+import com.monkopedia.lanterna.label
 import com.monkopedia.lanterna.navigation.Navigation
 import com.monkopedia.lanterna.runGuiThread
+import com.monkopedia.lanterna.spannable.SpannableLabel
+import com.monkopedia.lanterna.vertical
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
@@ -27,7 +34,19 @@ class Demo {
         runBlocking {
             val app = DemoApp()
             println("Open screen!")
-            app.navigator(navigation).push("/")
+            var title: SpannableLabel
+            navigation.header = buildViews {
+                border {
+                    vertical {
+                        title = label("HEADER!!").layoutParams(Wrap, Wrap, Gravity.CENTER)
+                    }
+                }
+            }.first()
+            val navigator = app.navigator(navigation)
+            navigator.title.attach {
+                title.setText(it)
+            }
+            navigator.push("/")
             println("Done screen!")
 
             runGuiThread(true)
@@ -37,7 +56,6 @@ class Demo {
             Lanterna.terminal.close()
             exitProcess(1)
         }
-
     }
 }
 

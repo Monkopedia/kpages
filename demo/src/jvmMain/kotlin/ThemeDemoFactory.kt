@@ -7,6 +7,7 @@ import com.monkopedia.dynamiclayout.Gravity
 import com.monkopedia.dynamiclayout.Wrap
 import com.monkopedia.kpages.Navigator
 import com.monkopedia.kpages.ViewControllerFactory
+import com.monkopedia.lanterna.ComponentHolder
 import com.monkopedia.lanterna.ConsumeEvent
 import com.monkopedia.lanterna.EventMatcher
 import com.monkopedia.lanterna.FocusResult
@@ -33,7 +34,7 @@ actual val RootDemoFactory: ViewControllerFactory
     get() = ViewControllerFactory(::RootDemoScreen)
 
 class ThemeDemoScreen : Screen("theme_demo") {
-    override fun WindowHolder.createWindow() {
+    override fun ComponentHolder.createWindow() {
         frame {
             border {
                 label("No theme implemented")
@@ -44,12 +45,9 @@ class ThemeDemoScreen : Screen("theme_demo") {
 
 class RootDemoScreen(private val navigator: Navigator) : Screen("theme_demo") {
     lateinit var buttonLabel: SpannableLabel
-    override fun WindowHolder.createWindow() {
+    override fun ComponentHolder.createWindow() {
         frame {
             vertical {
-                border {
-                    label("Main screen")
-                }
                 buttonLabel = label("Next screen")
             }.layoutParams(Wrap, Wrap, Gravity.CENTER)
         }.layoutParams(Fill, Fill)

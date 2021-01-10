@@ -16,9 +16,13 @@
 package com.monkopedia.kpages
 
 import kotlinext.js.js
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import react.RComponent
 import react.RProps
 import react.RState
+import react.setState
 
 abstract class LifecycleComponent<P : RProps, S : RState> : RComponent<P, S> {
 
@@ -27,13 +31,29 @@ abstract class LifecycleComponent<P : RProps, S : RState> : RComponent<P, S> {
     constructor() : super()
     constructor(props: P) : super(props)
 
+    fun lifecycleHolder() = LifecycleHolder().also(::registerLifecycleAware)
+
     fun registerLifecycleAware(l: LifecycleAware) {
         l.onActivate?.invoke()
         callbacks.add(l)
     }
 
     inline fun attach(builder: LifecycleAware.() -> Unit) {
-        registerLifecycleAware(js { }.unsafeCast<LifecycleAware>().apply(builder))
+        registerLifecycleAware(LifecycleAware().apply(builder))
+    }
+
+    fun <T> Mutable<T>.intoState(s: S.(T) -> Unit) {
+        registerLifecycleAware(toState(s))
+    }
+
+    fun <T> Mutable<T>.toState(s: S.(T) -> Unit) = onValue { v ->
+        // Avoid being in rendering.
+        GlobalScope.launch {
+            delay(1)
+            setState {
+                s(v)
+            }
+        }
     }
 
     override fun componentWillUnmount() {
@@ -43,7 +63,52 @@ abstract class LifecycleComponent<P : RProps, S : RState> : RComponent<P, S> {
     }
 }
 
+class LifecycleHolder(lifecycle: LifecycleAware? = null) : LifecycleAware {
+    var lifecycle: LifecycleAware? = lifecycle
+        set(value) {
+            if (field != value) {
+                if (isActive) {
+                    field?.onDeactivate?.invoke()
+                }
+                field = value
+                if (isActive) {
+                    field?.onActivate?.invoke()
+                }
+            }
+        }
+    private var isActive = false
+
+    override var onActivate: (() -> Unit)?
+        get() = {
+            if (!isActive) {
+                isActive = true
+                lifecycle?.onActivate?.invoke()
+            }
+        }
+        set(value) {}
+    override var onDeactivate: (() -> Unit)?
+        get() = {
+            if (isActive) {
+                isActive = false
+                lifecycle?.onDeactivate?.invoke()
+            }
+        }
+        set(value) {}
+}
+
+fun LifecycleAware() = js { }.unsafeCast<LifecycleAware>()
 external interface LifecycleAware {
     var onActivate: (() -> Unit)?
     var onDeactivate: (() -> Unit)?
+}
+
+fun <T> Mutable<T>.onValue(callback: (T) -> Unit): LifecycleAware {
+    return LifecycleAware().apply {
+        onActivate = {
+            attach(callback)
+        }
+        onDeactivate = {
+            detach(callback)
+        }
+    }
 }

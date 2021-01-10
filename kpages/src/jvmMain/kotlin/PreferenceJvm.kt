@@ -15,9 +15,9 @@
  */
 package com.monkopedia.kpages.preferences
 
+import com.monkopedia.kpages.Mutable
 import com.monkopedia.kpages.Navigator
 import com.monkopedia.kpages.ViewControllerFactory
-import com.monkopedia.lanterna.navigation.Navigation
 import com.monkopedia.lanterna.navigation.Screen
 
 actual interface PreferenceBaseProps {
@@ -30,10 +30,11 @@ actual interface PreferenceProps : PreferenceBaseProps {
 }
 
 actual class PreferenceScreen actual constructor(
-    title: String,
+    private val title: String,
     private val preferenceBuilder: PreferenceBuilder.(Navigator) -> Unit
 ) : ViewControllerFactory() {
-    override fun create(navigation: Navigator): Screen {
+    override fun create(navigation: Navigator, title: Mutable<CharSequence>): Screen {
+        title.value = this.title
         return JvmPreferenceScreen(navigation, PreferenceBuilder().apply {
             preferenceBuilder(navigation)
         })
