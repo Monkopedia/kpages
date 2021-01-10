@@ -19,6 +19,7 @@ import com.monkopedia.lanterna.frame
 import com.monkopedia.lanterna.label
 import com.monkopedia.lanterna.navigation.Navigation
 import com.monkopedia.lanterna.navigation.Screen
+import com.monkopedia.lanterna.space
 import com.monkopedia.lanterna.spannable.EnableSGRSpan
 import com.monkopedia.lanterna.spannable.SpannableLabel
 import com.monkopedia.lanterna.spannable.Spanned
@@ -27,7 +28,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 actual val ThemeDemoFactory: ViewControllerFactory
-    get() = ViewControllerFactory { ThemeDemoScreen() }
+    get() = ViewControllerFactory { _, _ -> ThemeDemoScreen() }
 
 
 actual val RootDemoFactory: ViewControllerFactory
@@ -43,14 +44,17 @@ class ThemeDemoScreen : Screen("theme_demo") {
     }
 }
 
-class RootDemoScreen(private val navigator: Navigator) : Screen("theme_demo") {
+class RootDemoScreen(private val navigator: Navigator, private val path: String) : Screen("theme_demo") {
     lateinit var buttonLabel: SpannableLabel
     override fun ComponentHolder.createWindow() {
         frame {
             vertical {
+                space(2)
                 buttonLabel = label("Next screen")
+                space(2)
+                label("Path: $path")
             }.layoutParams(Wrap, Wrap, Gravity.CENTER)
-        }.layoutParams(Fill, Fill)
+        }
     }
 
     private val button = object : Selectable {

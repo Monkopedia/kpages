@@ -33,17 +33,16 @@ actual class PreferenceScreen actual constructor(
     private val title: String,
     private val preferenceBuilder: PreferenceBuilder.(Navigator) -> Unit
 ) : ViewControllerFactory() {
-    override val componentFactory: RBuilder.(Mutable<CharSequence>) -> ReactElement?
-        get() = {
-            it.value = title
-            child(PreferenceComponent::class) {
-                attrs {
-                    title = this@PreferenceScreen.title
-                    preferences = preferenceBuilder
-                    navigator = Navigator.INSTANCE
-                }
+    override fun RBuilder.create(path: String, title: Mutable<CharSequence>): ReactElement? {
+        title.value = this@PreferenceScreen.title
+        return child(PreferenceComponent::class) {
+            attrs {
+                this.title = this@PreferenceScreen.title
+                preferences = preferenceBuilder
+                navigator = Navigator.INSTANCE
             }
         }
+    }
 }
 
 external interface PreferenceComponentProps : RProps {
@@ -67,4 +66,5 @@ class PreferenceComponent(props: PreferenceComponentProps) :
         }
     }
 }
+
 actual class PreferenceBuilder(val base: RBuilder)

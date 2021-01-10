@@ -33,7 +33,7 @@ actual class PreferenceScreen actual constructor(
     private val title: String,
     private val preferenceBuilder: PreferenceBuilder.(Navigator) -> Unit
 ) : ViewControllerFactory() {
-    override fun create(navigation: Navigator, title: Mutable<CharSequence>): Screen {
+    override fun create(navigation: Navigator, path: String, title: Mutable<CharSequence>): Screen {
         title.value = this.title
         return JvmPreferenceScreen(navigation, PreferenceBuilder().apply {
             preferenceBuilder(navigation)

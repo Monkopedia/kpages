@@ -19,13 +19,13 @@ import com.monkopedia.lanterna.navigation.Navigation
 import com.monkopedia.lanterna.navigation.Screen
 import java.lang.IllegalArgumentException
 
-inline fun ViewControllerFactory(crossinline factory: (Navigator) -> Screen) =
+inline fun ViewControllerFactory(crossinline factory: (Navigator, String) -> Screen) =
     object : ViewControllerFactory() {
-        override fun create(navigation: Navigator, title: Mutable<CharSequence>): Screen = factory(navigation)
+        override fun create(navigation: Navigator, path: String, title: Mutable<CharSequence>): Screen = factory(navigation, path)
     }
 
 actual abstract class ViewControllerFactory {
-    abstract fun create(navigation: Navigator, title: Mutable<CharSequence>): Screen
+    abstract fun create(navigation: Navigator, path: String, title: Mutable<CharSequence>): Screen
 }
 
 fun KPagesApp.navigator(navigation: Navigation): Navigator {
@@ -53,7 +53,7 @@ actual class Navigator(private val app: KPagesApp, internal val navigation: Navi
         val title = Mutable((resolved.title ?: resolved.path) as CharSequence)
         titles.add(title)
         paths.add(path)
-        val screen = resolved.factory.create(this, title)
+        val screen = resolved.factory.create(this, path, title)
         selector.source = title
         navigation.open(screen)
     }

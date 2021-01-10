@@ -17,6 +17,7 @@ package com.monkopedia.kpages.demo
 
 import com.monkopedia.kpages.ClassFactory
 import com.monkopedia.kpages.ViewControllerFactory
+import com.monkopedia.kpages.factory
 import kotlinx.browser.window
 import kotlinx.html.js.onClickFunction
 import react.RBuilder
@@ -24,15 +25,27 @@ import react.RComponent
 import react.RProps
 import react.RState
 import react.dom.a
+import react.dom.br
 import react.dom.div
+import react.dom.h2
+import react.dom.p
 
+external interface RootProps : RProps {
+    var path: String?
+}
 external interface RootState : RState {
     var search: String?
 }
 
-actual val RootDemoFactory: ViewControllerFactory = ClassFactory(ImdexRoot::class)
+actual val RootDemoFactory: ViewControllerFactory = factory { path, title ->
+    child(ImdexRoot::class) {
+        attrs {
+            this.path = path
+        }
+    }
+}
 
-class ImdexRoot : RComponent<RProps, RootState>() {
+class ImdexRoot : RComponent<RootProps, RootState>() {
     override fun RBuilder.render() {
 //        mThemeProvider(theme = theme) {
 //            styledDiv {
@@ -65,6 +78,11 @@ class ImdexRoot : RComponent<RProps, RootState>() {
                 }
             }
         }
+        br {  }
+        h2 {
+            +"Path: ${props.path}"
+        }
+
 //                        }
 //                    }
 //                }

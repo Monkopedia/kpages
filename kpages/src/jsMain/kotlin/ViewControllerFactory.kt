@@ -20,36 +20,24 @@ import react.RBuilder
 import react.RComponent
 import react.RHandler
 import react.RProps
-import react.rClass
 import react.ReactElement
+import react.rClass
 import kotlin.reflect.KClass
 
-inline fun factory(noinline f: RBuilder.(Mutable<CharSequence>) -> ReactElement?): ViewControllerFactory {
+inline fun factory(noinline f: RBuilder.(String, Mutable<CharSequence>) -> ReactElement?): ViewControllerFactory {
     return object : ViewControllerFactory() {
-        override val componentFactory: RBuilder.(Mutable<CharSequence>) -> ReactElement? = f
+        override fun RBuilder.create(path: String, title: Mutable<CharSequence>): ReactElement? = f(path, title)
     }
 }
 
 actual abstract class ViewControllerFactory {
-    abstract val componentFactory: RBuilder.(Mutable<CharSequence>) -> ReactElement?
+    abstract fun RBuilder.create(path: String, title: Mutable<CharSequence>): ReactElement?
 }
 
-
-inline fun <P: RProps, T : RComponent<P, *>> ClassFactory(cls: KClass<T>, noinline r: RHandler<out RProps> = {}) =
-    factory { cls.rClass.invoke(r).also { child(it) } }
-//open class ClassFactory<T : RComponent<*, *>>(private val cls: KClass<T>) :
-//    ViewControllerFactory() {
-//    override val componentFactory: RBuilder.() -> ReactElement? = {
-//        println("Class factory")
-//        child(cls.js.newInstance()) {}
-//    }
-//}
-
-fun <T : Any> JsClass<T>.newInstance(): T {
-    inline fun callCtor(ctor: dynamic) = js("new ctor()")
-    return callCtor(asDynamic()) as T
-}
-
+inline fun <P : RProps, T : RComponent<P, *>> ClassFactory(
+    cls: KClass<T>,
+    noinline r: RHandler<out RProps> = {}
+) = factory { _, _ -> cls.rClass.invoke(r).also { child(it) } }
 
 actual class Navigator {
     actual val path: String

@@ -41,11 +41,13 @@ class KPagesComponent : LifecycleComponent<KPagesProps, KPagesState>() {
             switch {
                 val routes = props.app?.routes ?: emptyList()
                 for (route in routes) {
-                    val factory = route.factory.componentFactory
+                    val factory = route.factory
                     route<RProps>(route.path, exact = route.exact) {
                         val currentTitle = Mutable((route.title ?: route.path) as CharSequence)
-                        factory(currentTitle).also {
-                            setTitle(currentTitle)
+                        with(factory) {
+                            create(it.location.pathname, currentTitle).also {
+                                setTitle(currentTitle)
+                            }
                         }
                     }
                 }
