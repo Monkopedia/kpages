@@ -15,6 +15,7 @@
  */
 package com.monkopedia.kpages.preferences
 
+import com.monkopedia.kpages.INSTANCE
 import com.monkopedia.kpages.Mutable
 import com.monkopedia.kpages.Navigator
 import com.monkopedia.kpages.ViewControllerFactory

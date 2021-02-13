@@ -39,19 +39,19 @@ inline fun <P : RProps, T : RComponent<P, *>> ClassFactory(
     noinline r: RHandler<out RProps> = {}
 ) = factory { _, _ -> cls.rClass.invoke(r).also { child(it) } }
 
-actual class Navigator {
-    actual val path: String
+internal class NavigatorImpl : Navigator {
+    override val path: String
         get() = window.location.pathname
 
-    actual suspend fun goBack() {
+    override suspend fun goBack() {
         window.history.back()
     }
 
-    actual suspend fun push(path: String) {
+    override suspend fun push(path: String) {
         window.open(path, "_self")
     }
 
-    companion object {
-        val INSTANCE = Navigator()
-    }
+    companion object
 }
+
+val Navigator.Companion.INSTANCE: Navigator by lazy { NavigatorImpl() }

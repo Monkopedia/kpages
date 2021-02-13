@@ -16,8 +16,11 @@
 package com.monkopedia.kpages
 
 expect abstract class ViewControllerFactory
-expect class Navigator {
+
+interface Navigator {
     val path: String
     suspend fun goBack()
     suspend fun push(path: String)
+
+    companion object
 }

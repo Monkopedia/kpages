@@ -18,6 +18,8 @@ package com.monkopedia.lanterna.navigation
 import com.googlecode.lanterna.gui2.Component
 import com.googlecode.lanterna.input.KeyType
 import com.monkopedia.dynamiclayout.CachingPanel
+import com.monkopedia.dynamiclayout.Fill
+import com.monkopedia.dynamiclayout.Wrap
 import com.monkopedia.lanterna.Command
 import com.monkopedia.lanterna.ComponentHolder
 import com.monkopedia.lanterna.EventMatcher
@@ -77,7 +79,7 @@ abstract class Screen(val name: String) : CoroutineScope {
     }
     private val headerView by lazy {
         buildViews {
-            frame {  }
+            frame {  }.layoutParams(Fill, Wrap)
         }.first() as CachingPanel
     }
 

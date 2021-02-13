@@ -57,7 +57,7 @@ class JvmPreferenceScreen(private val navigator: Navigator, private val root: Pr
     }
     private val selectionManager by lazy {
         SelectionManager(
-            navigator.navigation,
+            navigation,
             EventMatcher.keyType(KeyType.Enter),
             EventMatcher.keyType(KeyType.ArrowDown),
             EventMatcher.keyType(KeyType.ArrowUp)

@@ -17,37 +17,43 @@ package com.monkopedia.kpages
 
 import com.monkopedia.lanterna.navigation.Navigation
 import com.monkopedia.lanterna.navigation.Screen
-import java.lang.IllegalArgumentException
 
 inline fun ViewControllerFactory(crossinline factory: (Navigator, String) -> Screen) =
     object : ViewControllerFactory() {
-        override fun create(navigation: Navigator, path: String, title: Mutable<CharSequence>): Screen = factory(navigation, path)
+        override fun create(
+            navigation: Navigator,
+            path: String,
+            title: Mutable<CharSequence>
+        ): Screen = factory(navigation, path)
     }
 
 actual abstract class ViewControllerFactory {
     abstract fun create(navigation: Navigator, path: String, title: Mutable<CharSequence>): Screen
 }
 
-fun KPagesApp.navigator(navigation: Navigation): Navigator {
-    return Navigator(this, navigation)
+fun KPagesApp.navigator(navigation: Navigation, title: Mutable<CharSequence>): Navigator {
+    return NavigatorImpl(this, navigation, title)
 }
 
-actual class Navigator(private val app: KPagesApp, internal val navigation: Navigation) {
+internal class NavigatorImpl(
+    private val app: KPagesApp,
+    val navigation: Navigation,
+    title: Mutable<CharSequence>
+) : Navigator {
     var paths = mutableListOf("/")
     var titles = mutableListOf(Mutable("" as CharSequence))
-    actual val path: String
+    override val path: String
         get() = paths.last()
-    private val selector = SelectingMutable(titles.last())
-    val title = selector.output
+    private val selector = SelectingMutable(titles.last(), title)
 
-    actual suspend fun goBack() {
+    override suspend fun goBack() {
         paths.removeLast()
         titles.removeLast()
         selector.source = titles.last()
         navigation.popScreen()
     }
 
-    actual suspend fun push(path: String) {
+    override suspend fun push(path: String) {
         val resolved = app.resolve(path)
             ?: throw IllegalArgumentException("No path for $path")
         val title = Mutable((resolved.title ?: resolved.path) as CharSequence)
@@ -59,7 +65,10 @@ actual class Navigator(private val app: KPagesApp, internal val navigation: Navi
     }
 }
 
-class SelectingMutable<T>(initial: Mutable<T>) {
+class SelectingMutable<T>(
+    initial: Mutable<T>,
+    val output: Mutable<T> = Mutable(initial.value)
+) {
     private val listener: (T) -> Unit = {
         output.value = it
     }
@@ -68,7 +77,6 @@ class SelectingMutable<T>(initial: Mutable<T>) {
             field.detach(listener)
             value.attach(listener)
         }
-    val output = Mutable(initial.value)
 
     init {
         initial.attach(listener)

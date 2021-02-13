@@ -29,6 +29,7 @@ import com.monkopedia.dynamiclayout.CachingPanel
 import com.monkopedia.dynamiclayout.DynamicFrameLayout
 import com.monkopedia.dynamiclayout.Fill
 import com.monkopedia.dynamiclayout.Wrap
+import com.monkopedia.lanterna.EventMatcher.Companion.CtrlDown
 import com.monkopedia.lanterna.Lanterna.gui
 import com.monkopedia.lanterna.navigation.Navigation
 import com.monkopedia.lanterna.spannable.SpannableLabel
@@ -107,7 +108,11 @@ class TextInput : CachingPanel(), Focusable {
         }
     }
 
+
     override fun onInput(keyStroke: KeyStroke): FocusResult {
+        if (CtrlDown.matches(keyStroke)) {
+            return Unhandled
+        }
         return when (keyStroke.keyType) {
             Character -> ConsumeEvent.also {
                 text = "${text ?: ""}${keyStroke.character}"
