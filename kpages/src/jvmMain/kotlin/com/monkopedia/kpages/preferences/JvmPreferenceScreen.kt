@@ -13,6 +13,7 @@ import com.monkopedia.dynamiclayout.Fill
 import com.monkopedia.dynamiclayout.SizeSpec
 import com.monkopedia.dynamiclayout.WeightedLayoutParams
 import com.monkopedia.dynamiclayout.Wrap
+import com.monkopedia.kpages.Mutable
 import com.monkopedia.kpages.Navigator
 import com.monkopedia.lanterna.ComponentHolder
 import com.monkopedia.lanterna.ConsumeEvent
@@ -23,7 +24,6 @@ import com.monkopedia.lanterna.FocusResult
 import com.monkopedia.lanterna.LinearPanelHolder
 import com.monkopedia.lanterna.Selectable
 import com.monkopedia.lanterna.SelectionManager
-import com.monkopedia.lanterna.WindowHolder
 import com.monkopedia.lanterna.border
 import com.monkopedia.lanterna.horizontal
 import com.monkopedia.lanterna.label
@@ -38,23 +38,45 @@ import com.monkopedia.lanterna.vertical
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class JvmPreferenceScreen(private val navigator: Navigator, private val root: PreferenceBuilder) :
-    Screen("JvmPreferenceScreen") {
+class JvmPreferenceScreen(
+    private val navigator: Navigator,
+    private val title: Mutable<CharSequence>,
+    private val adapter: PreferenceAdapter
+) : Screen("JvmPreferenceScreen") {
+
+    private lateinit var parent: Panel
+    private var allSelectables = emptyList<PreferenceView>()
+    private var root: Component? = null
+
+    init {
+        adapter.navigatorImpl = navigator
+        adapter.onChange = {
+            title.value = adapter.title
+            root?.let {
+                parent.removeComponent(it)
+            }
+            root = with(adapter) {
+                PreferenceBuilder().also {
+                    it.build()
+                }
+            }.also { root ->
+                parent.addComponent(root)
+                allSelectables = findSelectables(root).also {
+                    for (c in it) {
+                        c.screen = this
+                    }
+                }
+                updateSelectables()
+            }
+        }
+    }
 
     override fun ComponentHolder.createWindow() {
-        vertical {
-            border {
-                label("Preference screen")
-            }
-            addComponent(root)
+        parent = vertical {
         }
+        adapter.onChange()
     }
 
-    private val allSelectables = findSelectables(root).also {
-        for (c in it) {
-            c.screen = this
-        }
-    }
     private val selectionManager by lazy {
         SelectionManager(
             navigation,
@@ -79,7 +101,6 @@ class JvmPreferenceScreen(private val navigator: Navigator, private val root: Pr
     internal fun updateSelectables() {
         selectionManager.selectables = allSelectables.filter { it.selectable }
     }
-
 }
 
 private fun findSelectables(root: Panel): List<PreferenceView> {
@@ -113,7 +134,7 @@ actual class PreferenceBuilder : CachingPanel() {
     fun createCategory(): PreferenceCategoryProps = PreferenceCategoryImpl()
 
     fun <T : SelectionOption> createSelectionPreferenceProps(): SelectionPreferenceProps<T> =
-        SelectionPreferenceImpl<T>()
+        SelectionPreferenceImpl()
 
     fun createSwitchPreferenceProps(): SwitchPreferenceProps = SwitchPreferenceImpl()
 
@@ -200,7 +221,8 @@ private class SwitchPreferenceImpl : CachingPanel(), SwitchPreferenceProps, Pref
                 )
             }
         })
-        subtitleLabel.layoutData = WeightedLayoutParams(Fill, if (subtitle != null) Wrap else SizeSpec.specify(0))
+        subtitleLabel.layoutData =
+            WeightedLayoutParams(Fill, if (subtitle != null) Wrap else SizeSpec.specify(0))
         subtitleLabel.setText(Spanned().apply {
             subtitle?.let {
                 append(it, EnableSGRSpan(*(if (selected) arrayOf(SGR.REVERSE) else arrayOf())))
@@ -295,7 +317,8 @@ private class SelectionPreferenceImpl<T : SelectionOption> : CachingPanel(),
             val sgr = (if (selected) arrayOf(SGR.BOLD, SGR.REVERSE) else arrayOf(SGR.BOLD))
             append(title ?: "", EnableSGRSpan(*sgr))
         })
-        subtitleLabel.layoutData = WeightedLayoutParams(Fill, if (subtitle != null) Wrap else SizeSpec.specify(0))
+        subtitleLabel.layoutData =
+            WeightedLayoutParams(Fill, if (subtitle != null) Wrap else SizeSpec.specify(0))
         subtitleLabel.setText(Spanned().apply {
             append(
                 subtitle ?: "",
@@ -363,7 +386,8 @@ private class PreferenceImpl : CachingPanel(), PreferenceProps, PreferenceView {
             val sgr = (if (selected) arrayOf(SGR.BOLD, SGR.REVERSE) else arrayOf(SGR.BOLD))
             append(title ?: "", EnableSGRSpan(*sgr))
         })
-        subtitleLabel.layoutData = WeightedLayoutParams(Fill, if (subtitle != null) Wrap else SizeSpec.specify(0))
+        subtitleLabel.layoutData =
+            WeightedLayoutParams(Fill, if (subtitle != null) Wrap else SizeSpec.specify(0))
         subtitleLabel.setText(Spanned().apply {
             append(
                 subtitle ?: "",
@@ -375,7 +399,7 @@ private class PreferenceImpl : CachingPanel(), PreferenceProps, PreferenceView {
 
 
 private class PreferenceCategoryImpl : CachingPanel(), PreferenceCategoryProps, PreferenceView {
-    override var screen: JvmPreferenceScreen?? = null
+    override var screen: JvmPreferenceScreen? = null
     override val builder: PreferenceBuilder = PreferenceBuilder()
     override val selectable: Boolean
         get() = false
@@ -418,7 +442,7 @@ private class PreferenceCategoryImpl : CachingPanel(), PreferenceCategoryProps, 
 
 private class SwitchPreferenceCategoryImpl : CachingPanel(), SwitchPreferenceCategoryProps,
     PreferenceView {
-    override var screen: JvmPreferenceScreen?? = null
+    override var screen: JvmPreferenceScreen? = null
     override val builder: PreferenceBuilder = PreferenceBuilder()
     override val selectable: Boolean
         get() = onChange != null
@@ -480,7 +504,10 @@ private class SwitchPreferenceCategoryImpl : CachingPanel(), SwitchPreferenceCat
 
     private fun rebind() {
         titleLabel.setText(Spanned().apply {
-            append(title ?: "", if (selected) EnableSGRSpan(SGR.BOLD, SGR.REVERSE) else EnableSGRSpan(SGR.BOLD))
+            append(
+                title ?: "",
+                if (selected) EnableSGRSpan(SGR.BOLD, SGR.REVERSE) else EnableSGRSpan(SGR.BOLD)
+            )
         })
         checkbox.text = if (state) "[X]" else "[ ]"
     }

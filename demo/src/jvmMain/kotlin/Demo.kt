@@ -2,6 +2,7 @@ package com.monkopedia.kpages.demo
 
 import com.monkopedia.dynamiclayout.Gravity
 import com.monkopedia.dynamiclayout.Wrap
+import com.monkopedia.kpages.Mutable
 import com.monkopedia.kpages.navigator
 import com.monkopedia.lanterna.Lanterna
 import com.monkopedia.lanterna.ThemeData
@@ -42,10 +43,11 @@ class Demo {
                     }
                 }
             }.first()
-            val navigator = app.navigator(navigation)
-            navigator.title.attach {
+            val mutableTitle = Mutable<CharSequence>("")
+            mutableTitle.attach {
                 title.setText(it)
             }
+            val navigator = app.navigator(navigation, mutableTitle)
             navigator.push("/")
             println("Done screen!")
 

@@ -18,8 +18,29 @@ package com.monkopedia.kpages.preferences
 import com.monkopedia.kpages.Navigator
 import com.monkopedia.kpages.ViewControllerFactory
 
-expect class PreferenceScreen(title: String, preferenceBuilder: PreferenceBuilder.(Navigator) -> Unit) :
+expect class PreferenceScreen(adapter: (String) -> PreferenceAdapter) :
     ViewControllerFactory
+
+fun PreferenceScreen(
+    title: String,
+    preferenceBuilder: PreferenceBuilder.(Navigator) -> Unit
+): PreferenceScreen {
+    return PreferenceScreen {
+        object : PreferenceAdapter() {
+            override val title: String = title
+            override fun PreferenceBuilder.build() {
+                preferenceBuilder.invoke(this, navigator)
+            }
+        }
+    }
+}
+
+expect abstract class PreferenceAdapter() {
+    val navigator: Navigator
+    fun notifyChanged()
+    abstract val title: String
+    abstract fun PreferenceBuilder.build()
+}
 
 expect interface PreferenceBaseProps {
     var onClick: (suspend (Any) -> Unit)?
@@ -69,6 +90,7 @@ inline fun <T : SelectionOption> SelectionPreferenceProps<T>.option(t: T) {
 expect inline fun <reified T : SelectionOption> PreferenceBuilder.selectionPreference(
     noinline handler: SelectionPreferenceProps<T>.() -> Unit = {}
 )
+
 expect interface SwitchPreferenceProps : PreferenceProps {
     var initialState: Boolean?
     var onChange: (suspend (Boolean) -> Unit)?

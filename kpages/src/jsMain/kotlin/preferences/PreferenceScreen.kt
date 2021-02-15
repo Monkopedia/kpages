@@ -27,19 +27,18 @@ import react.RComponent
 import react.RProps
 import react.RState
 import react.ReactElement
+import react.setState
 import styled.css
 import styled.styledDiv
 
 actual class PreferenceScreen actual constructor(
-    private val title: String,
-    private val preferenceBuilder: PreferenceBuilder.(Navigator) -> Unit
+    private val adapter: (String) -> PreferenceAdapter
 ) : ViewControllerFactory() {
     override fun RBuilder.create(path: String, title: Mutable<CharSequence>): ReactElement? {
-        title.value = this@PreferenceScreen.title
         return child(PreferenceComponent::class) {
             attrs {
-                this.title = this@PreferenceScreen.title
-                preferences = preferenceBuilder
+                this.title = title
+                preferences = adapter(path)
                 navigator = Navigator.INSTANCE
             }
         }
@@ -47,13 +46,21 @@ actual class PreferenceScreen actual constructor(
 }
 
 external interface PreferenceComponentProps : RProps {
-    var preferences: ((PreferenceBuilder, Navigator) -> Unit)?
-    var title: String?
+    var preferences: PreferenceAdapter?
+    var title: Mutable<CharSequence>?
     var navigator: Navigator?
 }
 
 class PreferenceComponent(props: PreferenceComponentProps) :
     RComponent<PreferenceComponentProps, RState>(props) {
+
+    init {
+        props.preferences?.component = this
+    }
+
+    override fun componentWillReceiveProps(nextProps: PreferenceComponentProps) {
+        nextProps.preferences?.component = this
+    }
 
     override fun RBuilder.render() {
         styledDiv {
@@ -61,11 +68,26 @@ class PreferenceComponent(props: PreferenceComponentProps) :
                 paddingLeft = 16.px
                 paddingRight = 16.px
             }
-            props.preferences?.let {
-                it(PreferenceBuilder(this), props.navigator!!)
+            props.title?.value = props.preferences?.title ?: "Preference screen"
+            props.preferences?.apply {
+                PreferenceBuilder(this@render).build()
             }
         }
     }
 }
 
 actual class PreferenceBuilder(val base: RBuilder)
+
+actual abstract class PreferenceAdapter actual constructor() {
+    internal lateinit var component: PreferenceComponent
+    actual val navigator: Navigator
+        get() = Navigator.INSTANCE
+
+    actual fun notifyChanged() {
+        component.forceUpdate {
+        }
+    }
+
+    actual abstract fun PreferenceBuilder.build()
+    actual abstract val title: String
+}

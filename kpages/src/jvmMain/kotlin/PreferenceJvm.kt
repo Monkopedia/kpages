@@ -30,14 +30,10 @@ actual interface PreferenceProps : PreferenceBaseProps {
 }
 
 actual class PreferenceScreen actual constructor(
-    private val title: String,
-    private val preferenceBuilder: PreferenceBuilder.(Navigator) -> Unit
+    private val adapter: (String) -> PreferenceAdapter
 ) : ViewControllerFactory() {
-    override fun create(navigation: Navigator, path: String, title: Mutable<CharSequence>): Screen {
-        title.value = this.title
-        return JvmPreferenceScreen(navigation, PreferenceBuilder().apply {
-            preferenceBuilder(navigation)
-        })
+    override fun create(navigator: Navigator, path: String, title: Mutable<CharSequence>): Screen {
+        return JvmPreferenceScreen(navigator, title, adapter(path))
     }
 }
 
@@ -126,4 +122,18 @@ actual inline fun PreferenceBuilder.switchPreferenceCategory(
         this.onChange = onChange
         this.builder.builder()
     })
+}
+
+actual abstract class PreferenceAdapter actual constructor() {
+    internal lateinit var navigatorImpl: Navigator
+    internal lateinit var onChange: () -> Unit
+    actual val navigator: Navigator
+        get() = navigatorImpl
+
+    actual fun notifyChanged() {
+        onChange()
+    }
+
+    actual abstract fun PreferenceBuilder.build()
+    actual abstract val title: String
 }

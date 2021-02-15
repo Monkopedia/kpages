@@ -62,12 +62,38 @@ val PreferenceDemoScreen = PreferenceScreen("Preference demo") { nav ->
     }
 }
 
-val PreferenceDemoScreen_2 = PreferenceScreen("Preference demo 2") { nav ->
-    preferenceCategory("Second screen") {
-        preference {
-            title = "Go back"
-            onClick = {
-                nav.goBack()
+val PreferenceDemoScreen_2 = PreferenceScreen {
+    object : PreferenceAdapter() {
+
+        private var isOpen = false
+
+        override val title: String
+            get() = "Preference screen 2!"
+
+        override fun PreferenceBuilder.build() {
+            preferenceCategory("Second screen") {
+                switchPreference {
+                    title = "Extra options"
+                    initialState = isOpen
+                    onChange = {
+                        isOpen = it
+                        notifyChanged()
+                    }
+                }
+                if (isOpen) {
+                    preference {
+                        title = "Another back"
+                        onClick = {
+                            navigator.goBack()
+                        }
+                    }
+                }
+                preference {
+                    title = "Go back"
+                    onClick = {
+                        navigator.goBack()
+                    }
+                }
             }
         }
     }
