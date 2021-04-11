@@ -56,10 +56,12 @@ class PreferenceComponent(props: PreferenceComponentProps) :
 
     init {
         props.preferences?.component = this
+        props.title?.value = props.preferences?.title ?: "Preference screen"
     }
 
     override fun componentWillReceiveProps(nextProps: PreferenceComponentProps) {
         nextProps.preferences?.component = this
+        nextProps.title?.value = nextProps.preferences?.title ?: "Preference screen"
     }
 
     override fun RBuilder.render() {
@@ -68,7 +70,6 @@ class PreferenceComponent(props: PreferenceComponentProps) :
                 paddingLeft = 16.px
                 paddingRight = 16.px
             }
-            props.title?.value = props.preferences?.title ?: "Preference screen"
             props.preferences?.apply {
                 PreferenceBuilder(this@render).build()
             }
@@ -84,6 +85,7 @@ actual abstract class PreferenceAdapter actual constructor() {
         get() = Navigator.INSTANCE
 
     actual fun notifyChanged() {
+        component.props.title!!.value = title
         component.forceUpdate {
         }
     }
