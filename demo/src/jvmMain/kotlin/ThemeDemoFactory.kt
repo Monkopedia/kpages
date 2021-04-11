@@ -10,6 +10,9 @@ import com.monkopedia.kpages.ViewControllerFactory
 import com.monkopedia.lanterna.ComponentHolder
 import com.monkopedia.lanterna.ConsumeEvent
 import com.monkopedia.lanterna.EventMatcher
+import com.monkopedia.lanterna.EventMatcher.Companion.and
+import com.monkopedia.lanterna.EventMatcher.Companion.matcher
+import com.monkopedia.lanterna.EventMatcher.Companion.or
 import com.monkopedia.lanterna.FocusResult
 import com.monkopedia.lanterna.Selectable
 import com.monkopedia.lanterna.SelectionManager
@@ -79,9 +82,9 @@ class RootDemoScreen(private val navigator: Navigator, private val path: String)
         super.onCreate()
         val selectionManager = SelectionManager(
             navigation,
-            EventMatcher.keyType(KeyType.Enter),
-            EventMatcher.keyType(KeyType.ArrowDown),
-            EventMatcher.keyType(KeyType.ArrowUp)
+            KeyType.Enter.matcher() or ' '.matcher(),
+            KeyType.ArrowDown.matcher() or KeyType.ArrowRight.matcher() or KeyType.Tab.matcher(),
+            KeyType.ArrowUp.matcher() or KeyType.ArrowLeft.matcher() or (KeyType.Tab.matcher() and EventMatcher.Companion.ShiftDown)
         )
         focusManager.defaultHandler = selectionManager
         selectionManager.selectables = listOf(button)

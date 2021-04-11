@@ -66,6 +66,7 @@ val PreferenceDemoScreen_2 = PreferenceScreen {
     object : PreferenceAdapter() {
 
         private var isOpen = false
+        private var inputValue = "Not set yet"
 
         override val title: String
             get() = "Preference screen 2!"
@@ -77,6 +78,19 @@ val PreferenceDemoScreen_2 = PreferenceScreen {
                     initialState = isOpen
                     onChange = {
                         isOpen = it
+                        notifyChanged()
+                    }
+                }
+                textInputPreference {
+                    title = "Click to change"
+                    subtitle = "Current value: $inputValue"
+                    dialogTitle = "Dialog is showing"
+                    dialogDescription = "This dialog can have other text included in it for details"
+                    hintText = "Summary text"
+                    value = inputValue
+                    onChange = {
+                        println("On input: $it")
+                        inputValue = it
                         notifyChanged()
                     }
                 }

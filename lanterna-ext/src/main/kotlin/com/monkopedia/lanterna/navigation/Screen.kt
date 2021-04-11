@@ -50,6 +50,7 @@ import kotlin.system.exitProcess
 private val LOGGER = Screen::class.logger
 abstract class Screen(val name: String) : CoroutineScope {
 
+    protected open val isCentered: Boolean = false
     private val job = SupervisorJob()
     override val coroutineContext: CoroutineContext =
         Dispatchers.GUI + job + LOGGER.exceptionHandler
@@ -108,7 +109,7 @@ abstract class Screen(val name: String) : CoroutineScope {
     }
 
     open suspend fun doCreateWindow(): ScreenWindow {
-        screenWindow(navigation.gui) {
+        screenWindow(navigation.gui, centered = isCentered) {
             vertical {
                 addComponent(headerView)
                 this.createWindow()

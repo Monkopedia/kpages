@@ -64,6 +64,21 @@ class Navigation(val gui: MultiWindowTextGUI) {
         }
     }
 
+    suspend fun showDialog(screen: Screen) {
+        withContext(dispatcher) {
+            LOGGER.info("Navigation: open dialog $screen")
+            screen.show(this@Navigation)
+        }
+    }
+
+    suspend fun hideDialog(screen: Screen) {
+        withContext(dispatcher) {
+            LOGGER.info("Navigation: open dialog $screen")
+            screen.hide(this@Navigation)
+            screen.destroy(this@Navigation)
+        }
+    }
+
     suspend fun replace(screen: Screen) {
         withContext(dispatcher) {
             try {

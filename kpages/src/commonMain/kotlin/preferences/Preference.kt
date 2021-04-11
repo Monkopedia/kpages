@@ -83,10 +83,6 @@ inline fun <T : SelectionOption> SelectionPreferenceProps<T>.option(t: T) {
     options = (options ?: emptyList()) + t
 }
 
-//expect interface SelectionPreferenceState<T : SelectionOption> {
-//    var selection: T?
-//}
-
 expect inline fun <reified T : SelectionOption> PreferenceBuilder.selectionPreference(
     noinline handler: SelectionPreferenceProps<T>.() -> Unit = {}
 )
@@ -96,10 +92,6 @@ expect interface SwitchPreferenceProps : PreferenceProps {
     var onChange: (suspend (Boolean) -> Unit)?
 }
 
-//expect interface SwitchPreferenceState {
-//    var selected: Boolean?
-//}
-
 expect inline fun PreferenceBuilder.switchPreference(
     noinline handler: SwitchPreferenceProps.() -> Unit = {}
 )
@@ -108,10 +100,6 @@ expect interface SwitchPreferenceCategoryProps : PreferenceCategoryProps {
     var initialState: Boolean?
     var onChange: (suspend (Boolean) -> Unit)?
 }
-
-//expect interface SwitchPreferenceCategoryState {
-//    var selected: Boolean?
-//}
 
 expect inline fun PreferenceBuilder.switchPreferenceCategory(
     noinline handler: SwitchPreferenceCategoryProps.() -> Unit = {},
@@ -123,4 +111,16 @@ expect inline fun PreferenceBuilder.switchPreferenceCategory(
     initialState: Boolean = false,
     noinline onChange: (suspend (Boolean) -> Unit)? = null,
     crossinline builder: PreferenceBuilder.() -> Unit
+)
+
+expect interface TextInputPreferenceProps : PreferenceProps {
+    var value: String?
+    var dialogTitle: String?
+    var dialogDescription: String?
+    var hintText: String?
+    var onChange: (suspend (String) -> Unit)?
+}
+
+expect inline fun PreferenceBuilder.textInputPreference(
+    noinline handler: TextInputPreferenceProps.() -> Unit = {}
 )

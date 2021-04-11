@@ -17,6 +17,7 @@
 
 package com.monkopedia.lanterna
 
+import com.googlecode.lanterna.SGR
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.Border
 import com.googlecode.lanterna.gui2.Borders
@@ -45,8 +46,11 @@ import com.monkopedia.dynamiclayout.ScrollComponent
 import com.monkopedia.dynamiclayout.SizeSpec
 import com.monkopedia.dynamiclayout.WeightedLayoutParams
 import com.monkopedia.lanterna.Lanterna.activeWindows
+import com.monkopedia.lanterna.navigation.Navigation
 import com.monkopedia.lanterna.navigation.Screen
+import com.monkopedia.lanterna.spannable.EnableSGRSpan
 import com.monkopedia.lanterna.spannable.SpannableLabel
+import com.monkopedia.lanterna.spannable.Spanned
 import com.monkopedia.util.logger
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -390,5 +394,31 @@ fun ComponentHolder.space(size: Int): EmptySpace {
     return EmptySpace(TerminalSize(size, size)).also {
         log("space")
         addComponent(it)
+    }
+}
+
+@LanternaUi
+fun ComponentHolder.selectButton(text: String, onClick: () -> Unit): Selectable {
+    lateinit var label: SpannableLabel
+    border {
+        label = label(text)
+    }
+    return object : Selectable {
+        override fun onFire(navigation: Navigation): FocusResult {
+            onClick()
+            return ConsumeEvent
+        }
+
+        override var selected: Boolean = false
+            set(value) {
+                field = value
+                label.setText(Spanned().apply {
+                    append(
+                        text, if (selected) EnableSGRSpan(SGR.REVERSE, SGR.BOLD)
+                        else EnableSGRSpan(SGR.BOLD)
+                    )
+                })
+            }
+
     }
 }

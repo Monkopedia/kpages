@@ -124,6 +124,20 @@ actual inline fun PreferenceBuilder.switchPreferenceCategory(
     })
 }
 
+actual interface TextInputPreferenceProps : PreferenceProps {
+    actual var value: String?
+    actual var dialogTitle: String?
+    actual var dialogDescription: String?
+    actual var hintText: String?
+    actual var onChange: (suspend (String) -> Unit)?
+}
+
+actual inline fun PreferenceBuilder.textInputPreference(
+    noinline handler: TextInputPreferenceProps.() -> Unit,
+) {
+    add(createTextInputPreferenceProps().also(handler))
+}
+
 actual abstract class PreferenceAdapter actual constructor() {
     internal lateinit var navigatorImpl: Navigator
     internal lateinit var onChange: () -> Unit
