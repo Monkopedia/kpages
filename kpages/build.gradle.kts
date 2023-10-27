@@ -134,3 +134,15 @@ signing {
     useGpgCmd()
     sign(publishing.publications)
 }
+
+project.afterEvaluate {
+    tasks.withType(org.gradle.plugins.signing.Sign::class) {
+        val signingTask = this
+        tasks.withType(org.gradle.api.publish.maven.tasks.AbstractPublishToMaven::class) {
+            val publishTask = this
+            publishTask.dependsOn(signingTask)
+        }
+    }
+}
+
+
