@@ -15,61 +15,54 @@
  */
 package com.monkopedia.kpages.preferences
 
-import com.ccfraser.muirwik.components.MTypographyVariant
-import com.ccfraser.muirwik.components.mTypography
-import com.ccfraser.muirwik.components.table.mTable
-import com.ccfraser.muirwik.components.table.mTableBody
-import kotlinx.css.Display
-import kotlinx.css.FlexDirection
-import kotlinx.css.LinearDimension
-import kotlinx.css.display
-import kotlinx.css.flexDirection
-import kotlinx.css.marginBottom
-import kotlinx.css.marginTop
-import kotlinx.css.paddingLeft
-import kotlinx.css.paddingRight
-import kotlinx.css.px
-import kotlinx.css.width
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
-import styled.css
-import styled.styledDiv
+import emotion.react.css
+import js.core.jso
+import mui.material.Table
+import mui.material.TableBody
+import mui.material.Typography
+import mui.material.styles.TypographyVariant
+import react.FC
+import react.dom.html.ReactHTML.div
+import web.cssom.Auto
+import web.cssom.Display
+import web.cssom.FlexDirection
+import web.cssom.px
 
-actual external interface PreferenceCategoryProps : RProps {
+actual external interface PreferenceCategoryProps : PreferenceBaseProps {
     actual var title: String?
-    var children: ((PreferenceBuilder) -> Unit)?
+    actual var children: ((PreferenceBuilder) -> Unit)?
 }
 
-open class PreferenceCategory<P : PreferenceCategoryProps, S : RState> : RComponent<P, S>() {
-    override fun RBuilder.render() {
-        styledDiv {
-            css {
-                paddingLeft = 16.px
-                paddingRight = 16.px
-                width = LinearDimension.auto
-                display = Display.flex
-                flexDirection = FlexDirection.row
-            }
-            renderHeader()
+val PreferenceCategoryBase = FC<PreferencePropsHolder<PreferenceCategoryProps>> { props ->
+    div {
+        css {
+            paddingLeft = 16.px
+            paddingRight = 16.px
+            width = Auto.auto
+            display = Display.flex
+            flexDirection = FlexDirection.row
         }
-        styledDiv {
-            css {
-                marginTop = 16.px
-                marginBottom = 16.px
-            }
-            mTable {
-                mTableBody {
-                    props.children?.invoke(PreferenceBuilder(this))
-                }
+        +props.children
+    }
+    div {
+        css {
+            marginTop = 16.px
+            marginBottom = 16.px
+        }
+        Table {
+            TableBody {
+                props.preferenceProps.children?.invoke(PreferenceBuilder(this))
             }
         }
     }
+}
 
-    protected open fun RBuilder.renderHeader() {
-        props.title?.let {
-            mTypography(variant = MTypographyVariant.h5) {
+val PreferenceCategory = FC<PreferencePropsHolder<PreferenceCategoryProps>> { props ->
+    PreferenceCategoryBase {
+        preferenceProps = props.preferenceProps
+        props.preferenceProps.title?.let {
+            Typography {
+                variant = TypographyVariant.h5
                 +it
             }
         }
@@ -80,11 +73,13 @@ actual inline fun PreferenceBuilder.preferenceCategory(
     crossinline handler: PreferenceCategoryProps.() -> Unit,
     crossinline builder: PreferenceBuilder.() -> Unit
 ) {
-    base.child<PreferenceCategoryProps, PreferenceCategory<PreferenceCategoryProps, RState>> {
-        attrs {
-            handler()
-            children = {
-                it.builder()
+    base.apply {
+        PreferenceCategory {
+            preferenceProps = jso {
+                handler()
+                children = {
+                    it.builder()
+                }
             }
         }
     }
@@ -94,11 +89,13 @@ actual inline fun PreferenceBuilder.preferenceCategory(
     title: String,
     crossinline builder: PreferenceBuilder.() -> Unit
 ) {
-    base.child<PreferenceCategoryProps, PreferenceCategory<PreferenceCategoryProps, RState>> {
-        attrs {
-            this.title = title
-            children = {
-                it.builder()
+    base.apply {
+        PreferenceCategory {
+            preferenceProps = jso {
+                this.title = title
+                children = {
+                    it.builder()
+                }
             }
         }
     }

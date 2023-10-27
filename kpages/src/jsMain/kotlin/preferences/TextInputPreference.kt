@@ -15,22 +15,22 @@
  */
 package com.monkopedia.kpages.preferences
 
-import com.ccfraser.muirwik.components.MTypographyColor
-import com.ccfraser.muirwik.components.MTypographyVariant
-import com.ccfraser.muirwik.components.button.mButton
-import com.ccfraser.muirwik.components.dialog.mDialog
-import com.ccfraser.muirwik.components.dialog.mDialogActions
-import com.ccfraser.muirwik.components.dialog.mDialogContent
-import com.ccfraser.muirwik.components.dialog.mDialogTitle
-import com.ccfraser.muirwik.components.mTextField
-import com.ccfraser.muirwik.components.mTypography
-import com.ccfraser.muirwik.components.targetInputValue
+import js.core.jso
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import react.RBuilder
-import react.RState
-import react.dom.form
-import react.setState
+import mui.material.Button
+import mui.material.Dialog
+import mui.material.DialogActions
+import mui.material.DialogContent
+import mui.material.DialogTitle
+import mui.material.TextField
+import mui.material.Typography
+import mui.system.sx
+import react.FC
+import react.create
+import react.dom.onChange
+import react.useState
+import web.cssom.px
 
 actual external interface TextInputPreferenceProps : PreferenceProps {
     actual var value: String?
@@ -40,66 +40,61 @@ actual external interface TextInputPreferenceProps : PreferenceProps {
     actual var onChange: (suspend (String) -> Unit)?
 }
 
-external interface TextInputPreferenceState : RState {
-    var dialogOpen: Boolean?
-    var dialogValue: String?
-}
-
-class TextInputPreference : PreferenceBase<TextInputPreferenceProps, TextInputPreferenceState>() {
-    override fun RBuilder.renderPreference() {
-        props.title?.let {
-            mTypography(
-                it,
-                MTypographyVariant.subtitle1,
-                color = MTypographyColor.textPrimary
-            )
+val TextInputPreference = FC<PreferencePropsHolder<TextInputPreferenceProps>> { props ->
+    var dialogOpen: Boolean by useState(false)
+    var dialogValue: String? by useState(props.preferenceProps.value)
+    PreferenceBase {
+        preferenceProps = props.preferenceProps
+        preferenceProps.onClick = {
+            dialogValue = props.preferenceProps.value
+            dialogOpen = true
         }
-        props.subtitle?.let {
-            mTypography(
-                it,
-                MTypographyVariant.body2,
-                color = MTypographyColor.textSecondary
-            )
+        PreferenceText {
+            +props
         }
-        mDialog(open = state.dialogOpen ?: false) {
-            props.dialogTitle?.let {
-                mDialogTitle(it)
+        Dialog {
+            open = dialogOpen
+            props.preferenceProps.dialogTitle?.let {
+                DialogTitle {
+                    +it
+                }
             }
-            mDialogContent {
-                props.dialogDescription?.let {
-                    mTypography {
+            DialogContent {
+                props.preferenceProps.dialogDescription?.let {
+                    Typography {
                         +it
                     }
                 }
 
-                println("Binding text field ${props.value} ${state.dialogValue}")
-                mTextField(
-                    props.hintText ?: "Value",
-                    defaultValue = props.value,
+                TextField {
+                    sx {
+                        marginTop = 32.px
+                    }
+                    label = Typography.create {
+                        +(props.preferenceProps.hintText ?: "Value")
+                    }
+                    defaultValue = props.preferenceProps.value
                     onChange = {
-                        val value = it.targetInputValue
-                        setState {
-                            dialogValue = value
-                        }
-                    }) {
+                        val value = it.target.asDynamic().value.toString()
+                        dialogValue = value
+                    }
                 }
             }
-            mDialogActions {
-                mButton("Cancel", onClick = {
-                    setState {
+            DialogActions {
+                Button {
+                    +"Cancel"
+                    onClick = {
                         dialogOpen = false
                     }
-                }) {
                 }
-                mButton("OK", onClick = {
-                    setState {
+                Button {
+                    +"OK"
+                    onClick = {
                         dialogOpen = false
+                        GlobalScope.launch {
+                            props.preferenceProps.onChange?.invoke(dialogValue ?: "")
+                        }
                     }
-                    GlobalScope.launch {
-                        props.onChange?.let { it.invoke(state.dialogValue ?: "") }
-                    }
-                }) {
-
                 }
             }
         }
@@ -109,15 +104,11 @@ class TextInputPreference : PreferenceBase<TextInputPreferenceProps, TextInputPr
 actual inline fun PreferenceBuilder.textInputPreference(
     noinline handler: TextInputPreferenceProps.() -> Unit
 ) {
-    base.child(TextInputPreference::class) {
-        attrs {
-            onClick = {
-                (it as TextInputPreference).setState {
-                    dialogValue = it.props.value
-                    dialogOpen = true
-                }
+    base.apply {
+        TextInputPreference {
+            preferenceProps = jso {
+                handler()
             }
-            handler()
         }
     }
 }

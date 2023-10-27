@@ -15,50 +15,53 @@
  */
 package com.monkopedia.kpages
 
-import react.RBuilder
-import react.RProps
-import react.RState
-import react.router.dom.browserRouter
-import react.router.dom.route
-import react.router.dom.switch
+import com.monkopedia.konstructor.frontend.utils.useEffect
+import react.FC
+import react.Props
+import react.create
+import react.router.PathRouteProps
+import react.router.Route
+import react.router.RouteProps
+import react.router.Routes
+import react.router.dom.BrowserRouter
+import react.router.useLocation
 
-external interface KPagesProps : RProps {
+external interface KPagesProps : Props {
     var app: KPagesApp?
     var title: Mutable<CharSequence>?
 }
 
-external interface KPagesState : RState {
-    var title: CharSequence?
-}
+// external interface KPagesState : RState {
+//    var title: CharSequence?
+// }
 
-class KPagesComponent : LifecycleComponent<KPagesProps, KPagesState>() {
-    private val listenerHolder = LifecycleHolder().also {
-        registerLifecycleAware(it)
-    }
-
-    override fun RBuilder.render() {
-        browserRouter {
-            switch {
-                val routes = props.app?.routes ?: emptyList()
-                for (route in routes) {
-                    val factory = route.factory
-                    route<RProps>(route.path, exact = route.exact) {
+@Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+val KPagesComponent = FC<KPagesProps> { props ->
+    BrowserRouter {
+        Routes {
+            val routes = props.app?.routes ?: emptyList()
+            for (route in routes) {
+                Route {
+                    if (route.exact) {
+                        (this as PathRouteProps).path = route.path
+                    } else {
+                        (this as PathRouteProps).path = route.path + "/*"
+                    }
+                    element = FC<RouteProps> {
                         val currentTitle = Mutable((route.title ?: route.path) as CharSequence)
-                        with(factory) {
-                            create(it.location.pathname, currentTitle).also {
-                                setTitle(currentTitle)
+                        val location = useLocation()
+                        props.title?.let { title ->
+                            useEffect(title) {
+                                currentTitle.collect(title::emit)
                             }
                         }
-                    }
+                        (route.factory as JsControllerFactory).element {
+                            this.title = currentTitle
+                            this.route = location.key
+                        }
+                    }.create()
                 }
             }
-        }
-    }
-
-    private fun setTitle(title: Mutable<CharSequence>) {
-        val mutableTitle = props.title ?: return
-        listenerHolder.lifecycle = title.onValue {
-            mutableTitle.value = it
         }
     }
 }

@@ -15,25 +15,19 @@
  */
 package com.monkopedia.kpages.preferences
 
-import com.ccfraser.muirwik.components.MTypographyColor
-import com.ccfraser.muirwik.components.MTypographyVariant
-import com.ccfraser.muirwik.components.mSelect
-import com.ccfraser.muirwik.components.mTypography
-import com.ccfraser.muirwik.components.menu.mMenuItem
-import com.ccfraser.muirwik.components.targetValue
+import emotion.react.css
+import js.core.jso
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.css.Display
-import kotlinx.css.LinearDimension
-import kotlinx.css.display
-import kotlinx.css.marginLeft
-import kotlinx.css.marginRight
-import kotlinx.css.px
-import react.RBuilder
-import react.RState
-import react.setState
-import styled.css
-import styled.styledDiv
+import mui.material.MenuItem
+import mui.material.Select
+import react.FC
+import react.dom.html.ReactHTML.div
+import react.useState
+import web.cssom.AlignItems
+import web.cssom.Auto
+import web.cssom.Display
+import web.cssom.px
 
 actual external interface SelectionOption {
     actual var label: String
@@ -45,61 +39,61 @@ actual external interface SelectionPreferenceProps<T : SelectionOption> : Prefer
     actual var options: List<T>?
 }
 
-external interface SelectionPreferenceState<T : SelectionOption> : RState {
-    var selection: T?
-}
-
-class SelectionPreference<T : SelectionOption> :
-    PreferenceBase<SelectionPreferenceProps<T>, SelectionPreferenceState<T>>() {
-    override fun RBuilder.renderPreference() {
-        styledDiv {
-            css {
-                display = Display.flex
-            }
-            styledDiv {
-                props.title?.let {
-                    mTypography(
-                        it,
-                        MTypographyVariant.subtitle1,
-                        color = MTypographyColor.textPrimary
-                    )
+fun <T : SelectionOption> SelectionPreference() =
+    FC<PreferencePropsHolder<SelectionPreferenceProps<T>>> { props ->
+        var selection: T? by useState()
+        PreferenceBase {
+            preferenceProps = props.preferenceProps
+            div {
+                css {
+                    display = Display.flex
+                    alignItems = AlignItems.center
                 }
-                props.subtitle?.let {
-                    mTypography(
-                        it,
-                        MTypographyVariant.body2,
-                        color = MTypographyColor.textSecondary
-                    )
-                }
-            }
-            mSelect(
-                props.options?.indexOf(state.selection ?: props.initialState),
-                onChange = { e, c ->
-                    setState {
-                        selection = props.options?.get(e.targetValue.toString().toInt())
-                        GlobalScope.launch {
-                            props.onChange?.invoke(selection)
-                        }
+                div {
+                    PreferenceText {
+                        +props
                     }
                 }
-            ) {
-                css {
-                    marginLeft = LinearDimension.auto
-                    marginRight = 16.px
-                }
-                val list = props.options ?: emptyList()
-                for ((index, option) in list.withIndex()) {
-                    mMenuItem(option.label, value = index.toString())
+                Select {
+                    this.value = props.preferenceProps.options?.indexOf(
+                        selection
+                            ?: props.preferenceProps.initialState
+                    ).toString()
+                    onChange = { e, c ->
+                        console.log(e)
+                        console.log(c)
+                        selection = props.preferenceProps.options?.get(
+                            e.target.value.toInt()
+                        )
+                        GlobalScope.launch {
+                            props.preferenceProps.onChange?.invoke(selection)
+                        }
+                    }
+                    css {
+                        marginLeft = Auto.auto
+                        marginRight = 16.px
+                    }
+                    val list = props.preferenceProps.options ?: emptyList()
+                    for ((index, option) in list.withIndex()) {
+                        MenuItem {
+                            +option.label
+                            this.value = index.toString()
+                        }
+                    }
                 }
             }
         }
     }
-}
 
 actual inline fun <reified T : SelectionOption> PreferenceBuilder.selectionPreference(
     noinline handler: SelectionPreferenceProps<T>.() -> Unit
 ) {
-    base.child<SelectionPreferenceProps<T>, SelectionPreference<T>> {
-        attrs(handler)
+    val pref = SelectionPreference<T>()
+    base.apply {
+        pref {
+            preferenceProps = jso {
+                handler()
+            }
+        }
     }
 }

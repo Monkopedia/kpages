@@ -108,7 +108,6 @@ class TextInput : CachingPanel(), Focusable {
         }
     }
 
-
     override fun onInput(keyStroke: KeyStroke): FocusResult {
         if (CtrlDown.matches(keyStroke)) {
             return Unhandled

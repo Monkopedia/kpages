@@ -13,80 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import com.ccfraser.muirwik.components.mThemeProvider
+import com.monkopedia.konstructor.frontend.utils.useCollected
 import com.monkopedia.kpages.KPagesComponent
-import com.monkopedia.kpages.LifecycleComponent
-import com.monkopedia.kpages.LifecycleHolder
 import com.monkopedia.kpages.Mutable
 import com.monkopedia.kpages.demo.DemoApp
-import com.monkopedia.kpages.demo.theme
-import com.monkopedia.kpages.onValue
+import emotion.react.css
 import kotlinx.browser.document
-import kotlinx.css.LinearDimension
-import kotlinx.css.Overflow
-import kotlinx.css.height
-import kotlinx.css.marginTop
-import kotlinx.css.overflowY
-import kotlinx.css.px
-import kotlinx.css.vh
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
-import react.dom.h1
-import react.dom.render
-import react.setState
-import styled.css
-import styled.styledDiv
+import mui.material.styles.ThemeProvider
+import react.FC
+import react.Props
+import react.create
+import react.dom.client.createRoot
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h1
+import web.cssom.Auto
+import web.cssom.minus
+import web.cssom.px
+import web.cssom.vh
+import web.dom.Element
 
 fun main() {
-
-    render(document.getElementById("root")) {
-        val title = Mutable("Loading" as CharSequence)
-        mThemeProvider(theme = theme) {
-            styledDiv {
+    val root = createRoot(document.getElementById("root")!!.unsafeCast<Element>())
+    val title = Mutable("Loading" as CharSequence)
+    root.render(
+        ThemeProvider.create {
+            this.theme = com.monkopedia.kpages.demo.theme
+            div {
                 css {
-                    marginTop = LinearDimension("70px")
+                    marginTop = 70.px
                     height = 100.vh - 70.px
-                    overflowY = Overflow.auto
+                    overflowY = Auto.auto
                 }
-                child(TitleBar::class) {
-                    attrs {
-                        this.title = title
-                    }
+                TitleBar {
+                    this.title = title
                 }
-                child(KPagesComponent::class) {
-                    attrs {
-                        app = DemoApp()
-                        this.title = title
-                    }
+                KPagesComponent {
+                    app = DemoApp()
+                    this.title = title
                 }
             }
         }
-    }
+    )
 }
 
-external interface TitleProps: RProps {
+external interface TitleProps : Props {
     var title: Mutable<CharSequence>?
 }
-external interface TitleState: RState {
-    var title: CharSequence?
-}
 
-class TitleBar : LifecycleComponent<TitleProps, TitleState>() {
-    private val holder = lifecycleHolder()
-    init {
-        props?.title?.intoState {
-            this.title = it
-        }
+val TitleBar = FC<TitleProps> { props ->
+    val title = props.title?.useCollected("")
+    h1 {
+        +(title ?: "").toString()
     }
-    override fun RBuilder.render() {
-        holder.lifecycle = props.title?.toState {
-            this.title = it
-        }
-        h1 {
-            +(state.title ?: "").toString()
-        }
-    }
-
 }

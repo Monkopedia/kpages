@@ -17,9 +17,12 @@ package com.monkopedia.kpages
 
 import com.monkopedia.lanterna.navigation.Navigation
 import com.monkopedia.lanterna.navigation.Screen
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.launch
 
 inline fun ViewControllerFactory(crossinline factory: (Navigator, String) -> Screen) =
-    object : ViewControllerFactory() {
+    object : JvmControllerFactory() {
         override fun create(
             navigation: Navigator,
             path: String,
@@ -27,8 +30,12 @@ inline fun ViewControllerFactory(crossinline factory: (Navigator, String) -> Scr
         ): Screen = factory(navigation, path)
     }
 
-actual abstract class ViewControllerFactory {
-    abstract fun create(navigation: Navigator, path: String, title: Mutable<CharSequence>): Screen
+abstract class JvmControllerFactory : ViewControllerFactory() {
+    internal abstract fun create(
+        navigation: Navigator,
+        path: String,
+        title: Mutable<CharSequence>
+    ): Screen
 }
 
 fun KPagesApp.navigator(navigation: Navigation, title: Mutable<CharSequence>): Navigator {
@@ -44,7 +51,13 @@ internal class NavigatorImpl(
     var titles = mutableListOf(Mutable("" as CharSequence))
     override val path: String
         get() = paths.last()
-    private val selector = SelectingMutable(titles.last(), title)
+    private val selector = SelectingMutable(titles.last())
+
+    init {
+        app.launch {
+            selector.output.collect(title::emit)
+        }
+    }
 
     override suspend fun goBack() {
         paths.removeLast()
@@ -59,7 +72,7 @@ internal class NavigatorImpl(
         val title = Mutable((resolved.title ?: resolved.path) as CharSequence)
         titles.add(title)
         paths.add(path)
-        val screen = resolved.factory.create(this, path, title)
+        val screen = (resolved.factory as JvmControllerFactory).create(this, path, title)
         selector.source = title
         navigation.open(screen)
     }
@@ -67,18 +80,10 @@ internal class NavigatorImpl(
 
 class SelectingMutable<T>(
     initial: Mutable<T>,
-    val output: Mutable<T> = Mutable(initial.value)
 ) {
-    private val listener: (T) -> Unit = {
-        output.value = it
-    }
-    var source = initial
-        set(value) {
-            field.detach(listener)
-            value.attach(listener)
-        }
+    private val sourceField = Mutable(initial)
+    var source by sourceField::value
 
-    init {
-        initial.attach(listener)
-    }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val output = sourceField.flatMapLatest { it }
 }

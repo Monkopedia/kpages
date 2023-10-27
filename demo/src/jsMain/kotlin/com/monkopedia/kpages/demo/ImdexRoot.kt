@@ -15,38 +15,27 @@
  */
 package com.monkopedia.kpages.demo
 
-import com.monkopedia.kpages.ClassFactory
 import com.monkopedia.kpages.ViewControllerFactory
 import com.monkopedia.kpages.factory
 import kotlinx.browser.window
-import kotlinx.html.js.onClickFunction
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
-import react.dom.a
-import react.dom.br
-import react.dom.div
-import react.dom.h2
-import react.dom.p
+import react.FC
+import react.Props
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.br
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h2
 
-external interface RootProps : RProps {
+external interface RootProps : Props {
     var path: String?
 }
-external interface RootState : RState {
-    var search: String?
-}
 
-actual val RootDemoFactory: ViewControllerFactory = factory { path, title ->
-    child(ImdexRoot::class) {
-        attrs {
-            this.path = path
-        }
+actual val RootDemoFactory: ViewControllerFactory = factory { props ->
+    ImdexRoot {
+        this.path = props.route
     }
 }
 
-class ImdexRoot : RComponent<RootProps, RootState>() {
-    override fun RBuilder.render() {
+val ImdexRoot = FC<RootProps> { props ->
 //        mThemeProvider(theme = theme) {
 //            styledDiv {
 //                css {
@@ -67,26 +56,23 @@ class ImdexRoot : RComponent<RootProps, RootState>() {
 //                        }
 //                        route("/preference_demo", PreferenceDemoScreen::class, exact = true)
 //                        route("/", exact = false) {
-        div {
-            +"Page: ${window.location}"
+    div {
+        +"Page: ${window.location}"
+    }
+    a {
+        +"Next page"
+        onClick = {
+            window.open("/preference_demo", "_self")
         }
-        a {
-            +"Next page"
-            attrs {
-                onClickFunction = {
-                    window.open("/preference_demo", "_self")
-                }
-            }
-        }
-        br {  }
-        h2 {
-            +"Path: ${props.path}"
-        }
+    }
+    br { }
+    h2 {
+        +"Path: ${props.path}"
+    }
 
 //                        }
 //                    }
 //                }
 //            }
 //        }
-    }
 }

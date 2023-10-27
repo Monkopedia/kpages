@@ -15,149 +15,135 @@
  */
 package com.monkopedia.kpages.demo
 
-import com.ccfraser.muirwik.components.MCircularProgressColor
-import com.ccfraser.muirwik.components.MColor
-import com.ccfraser.muirwik.components.button.MIconEdge
-import com.ccfraser.muirwik.components.button.mIconButton
-import com.ccfraser.muirwik.components.form.MFormControlMargin
-import com.ccfraser.muirwik.components.form.MFormControlVariant
-import com.ccfraser.muirwik.components.mAppBar
-import com.ccfraser.muirwik.components.mCircularProgress
-import com.ccfraser.muirwik.components.mMuiThemeProvider
-import com.ccfraser.muirwik.components.mTextField
-import com.ccfraser.muirwik.components.mToolbar
-import com.ccfraser.muirwik.components.mToolbarTitle
-import com.ccfraser.muirwik.components.targetInputValue
-import com.monkopedia.kpages.LifecycleComponent
+import emotion.react.css
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.css.LinearDimension
-import kotlinx.css.flex
-import kotlinx.css.height
-import kotlinx.css.margin
-import kotlinx.css.marginRight
-import kotlinx.css.px
+import mui.icons.material.Close
+import mui.icons.material.Edit
+import mui.icons.material.Save
+import mui.icons.material.Search
+import mui.material.AppBar
+import mui.material.CircularProgress
+import mui.material.CircularProgressColor
+import mui.material.FormControlMargin
+import mui.material.FormControlVariant
+import mui.material.IconButton
+import mui.material.IconButtonColor
+import mui.material.IconButtonEdge
+import mui.material.TextField
+import mui.material.Toolbar
+import mui.material.Typography
+import mui.material.styles.ThemeProvider
 import org.w3c.dom.url.URLSearchParams
-import react.RBuilder
-import react.RProps
-import react.RState
-import react.setState
+import react.FC
+import react.Props
+import react.State
+import react.create
+import react.dom.onChange
+import react.useState
 import styled.StyleSheet
-import styled.createGlobalStyle
-import styled.css
+import web.cssom.Flex
+import web.cssom.px
 
-external interface AppBarState : RState {
-    var search: String?
-    var showingSearch: Boolean?
-    var saving: Boolean?
-}
+external interface AppBarState : State
 
-external interface AppBarProps : RProps {
+external interface AppBarProps : Props {
     var onSearchChanged: ((String?) -> Unit)?
 }
 
-class AppBarComponent : LifecycleComponent<AppBarProps, AppBarState>() {
-    private object ComponentStyles : StyleSheet("AppBar", isStatic = true) {
-        val textField by css {
-            height = LinearDimension("48px")
-            marginRight = LinearDimension("32px")
-            flex(1.0)
-        }
-
-        val appBar by css {
-            height = LinearDimension("64px")
-        }
+private object AppBarComponentStyles : StyleSheet("AppBar", isStatic = true) {
+    val textField by css {
     }
 
-    init {
+    val appBar by css {
     }
+}
 
-    private fun startSave() {
-        setState {
-            saving = true
-        }
+val AppBarComponent = FC<AppBarProps> { props ->
+    var search: String? by useState(null)
+    var showingSearch: Boolean by useState(false)
+    var saving: Boolean by useState(false)
+
+    fun startSave() {
+        saving = true
         GlobalScope.launch {
-            setState {
-                saving = false
-            }
+            saving = false
             val searchParams = URLSearchParams(window.location.search)
             searchParams.set("edit", "false")
             window.location.search = searchParams.toString()
         }
     }
-
-    override fun RBuilder.render() {
-        mAppBar {
-            css(ComponentStyles.appBar)
-            createGlobalStyle
-            mToolbar {
-                if (state.showingSearch == true) {
-                    mMuiThemeProvider(invertedTheme) {
-                        mTextField(
-                            "Search",
-                            variant = MFormControlVariant.outlined,
-                            margin = MFormControlMargin.dense,
-                            onChange = { e ->
-                                props.onSearchChanged?.invoke(e.targetInputValue)
-                            }
-                        ) {
-                            css(ComponentStyles.textField)
-                            attrs {
-                                this.autoFocus = true
-                                this.onKeyUp = {
-                                    if (it.asDynamic().key == "Escape") {
-                                        setState {
-                                            showingSearch = false
-                                        }
-                                    }
-                                }
-                            }
+    AppBar {
+        css {
+            height = 64.px
+        }
+        Toolbar {
+            if (showingSearch == true) {
+                ThemeProvider {
+                    theme = invertedTheme
+                    TextField {
+                        label = Typography.create {
+                            +"Search"
                         }
-                    }
-                    mIconButton(
-                        "close",
-                        edge = MIconEdge.end,
-                        color = MColor.inherit,
-                        onClick = {
-                            setState {
+                        variant = FormControlVariant.outlined
+                        margin = FormControlMargin.dense
+                        onChange = { e ->
+                            props.onSearchChanged?.invoke(e.asDynamic().targetInputValue)
+                        }
+                        css {
+                            height = 48.px
+                            marginRight = 32.px
+                            flex = 1.0.unsafeCast<Flex>()
+                        }
+                        this.autoFocus = true
+                        this.onKeyUp = {
+                            if (it.asDynamic().key == "Escape") {
                                 showingSearch = false
                             }
                         }
-                    )
-                } else {
-                    props.onSearchChanged?.invoke(null)
-                    mToolbarTitle("iMDex")
-                    val searchParams = URLSearchParams(window.location.search)
-                    val isEditing = searchParams.get("edit")?.toBoolean() ?: false
-                    if (state.saving == true) {
-                        mCircularProgress(color = MCircularProgressColor.inherit, size = 24.px) {
-                        }
-                    } else {
-                        mIconButton(
-                            if (isEditing) "save" else "edit",
-                            edge = MIconEdge.end,
-                            color = MColor.inherit,
-                            onClick = {
-                                if (isEditing) {
-                                    startSave()
-                                } else {
-                                    searchParams.set("edit", "${!isEditing}")
-                                    window.location.search = searchParams.toString()
-                                }
-                            }
-                        )
                     }
-                    mIconButton(
-                        "search",
-                        edge = MIconEdge.end,
-                        color = MColor.inherit,
+                }
+                IconButton {
+                    Close()
+                    edge = IconButtonEdge.end
+                    color = IconButtonColor.inherit
+                    onClick = {
+                        showingSearch = false
+                    }
+                }
+            } else {
+                props.onSearchChanged?.invoke(null)
+                +"iMDex"
+                val searchParams = URLSearchParams(window.location.search)
+                val isEditing = searchParams.get("edit")?.toBoolean() ?: false
+                if (saving == true) {
+                    CircularProgress {
+                        color = CircularProgressColor.inherit
+                        size = 24.px
+                    }
+                } else {
+                    IconButton {
+                        if (isEditing) Save() else Edit()
+                        edge = IconButtonEdge.end
+                        color = IconButtonColor.inherit
                         onClick = {
-                            setState {
-                                showingSearch = true
+                            if (isEditing) {
+                                startSave()
+                            } else {
+                                searchParams.set("edit", "${!isEditing}")
+                                window.location.search = searchParams.toString()
                             }
                         }
-                    )
+                    }
+                }
+                IconButton {
+                    Search()
+                    edge = IconButtonEdge.end
+                    color = IconButtonColor.inherit
+                    onClick = {
+                        showingSearch = true
+                    }
                 }
             }
         }

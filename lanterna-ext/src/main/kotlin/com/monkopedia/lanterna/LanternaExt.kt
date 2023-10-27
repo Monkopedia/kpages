@@ -163,9 +163,9 @@ inline fun Screen.screenWindow(
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
     }
     return ScreenWindow(this).also {
-        it.theme = com.monkopedia.lanterna.Lanterna.gui.theme
+        it.theme = Lanterna.gui.theme
         log("Open window")
-        if (com.monkopedia.lanterna.DEBUG_VIEWS) com.monkopedia.lanterna.logIndent++
+        if (DEBUG_VIEWS) logIndent++
         if (centered) {
             it.setHints(listOf(Window.Hint.CENTERED))
         }
@@ -173,7 +173,7 @@ inline fun Screen.screenWindow(
         gui.addWindow(it)
         activeWindows.add(it)
         it.setEnableDirectionBasedMovements(false)
-        if (com.monkopedia.lanterna.DEBUG_VIEWS) com.monkopedia.lanterna.logIndent--
+        if (DEBUG_VIEWS) logIndent--
         log("Close window")
     }
 }
@@ -412,13 +412,15 @@ fun ComponentHolder.selectButton(text: String, onClick: () -> Unit): Selectable 
         override var selected: Boolean = false
             set(value) {
                 field = value
-                label.setText(Spanned().apply {
-                    append(
-                        text, if (selected) EnableSGRSpan(SGR.REVERSE, SGR.BOLD)
-                        else EnableSGRSpan(SGR.BOLD)
-                    )
-                })
+                label.setText(
+                    Spanned().apply {
+                        append(
+                            text,
+                            if (selected) EnableSGRSpan(SGR.REVERSE, SGR.BOLD)
+                            else EnableSGRSpan(SGR.BOLD)
+                        )
+                    }
+                )
             }
-
     }
 }

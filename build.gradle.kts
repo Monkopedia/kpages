@@ -16,15 +16,14 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 repositories {
-    jcenter()
     mavenCentral()
     maven(url = "https://dl.bintray.com/kotlin/kotlin-dev/")
     maven(url = "https://dl.bintray.com/kotlin/kotlin-eap/")
 }
 
 plugins {
-    id("com.github.autostyle") version "3.1"
-    kotlin("multiplatform") version "1.4.10" apply false
+    alias(libs.plugins.autostyle)
+    kotlin("multiplatform") version "1.9.20-Beta" apply false
 }
 
 allprojects {
@@ -60,7 +59,7 @@ allprojects {
 subprojects {
     tasks.withType<KotlinCompile>().all {
         kotlinOptions {
-            jvmTarget = "1.8"
+            jvmTarget = "17"
             freeCompilerArgs += "-Xskip-prerelease-check"
         }
     }

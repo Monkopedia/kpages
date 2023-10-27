@@ -21,9 +21,9 @@ buildscript {
 plugins {
     // Apply the Kotlin JVM plugin to add support for Kotlin.
     id("org.jetbrains.kotlin.jvm")
-    kotlin("plugin.serialization") version "1.4.10"
+    kotlin("plugin.serialization") version libs.versions.kotlin.asProvider().get()
     kotlin("kapt")
-    id("org.jetbrains.dokka") version "1.4.10.2"
+    id("org.jetbrains.dokka") version libs.versions.dokka.get()
 
     `maven-publish`
     `signing`
@@ -48,32 +48,29 @@ repositories {
 dependencies {
     // Align versions of all Kotlin components
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
-    implementation("com.monkopedia:ksrpc:0.1.1")
 
     // Use the Kotlin JDK 8 standard library.
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.10")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC2")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.0-RC2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
-    implementation("io.ktor:ktor-client-core:1.3.2")
-    implementation("io.ktor:ktor-client-core-jvm:1.3.2")
-    implementation("io.ktor:ktor-client-apache:1.3.2")
-    implementation("com.fasterxml.jackson.core:jackson-core:2.10.0")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.10.0")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.10.0")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.10.0")
-    implementation("io.reactivex.rxjava3:rxkotlin:3.0.0")
+    implementation(kotlin("stdlib-jdk8"))
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.ktor.client.core)
+//    implementation("io.ktor:ktor-client-core:1.3.2")
+//    implementation("io.ktor:ktor-client-core-jvm:1.3.2")
+//    implementation("com.fasterxml.jackson.core:jackson-core:2.10.0")
+//    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.10.0")
+//    implementation("io.reactivex.rxjava3:rxkotlin:3.0.0")
 
-    implementation("org.jetbrains.exposed:exposed-core:0.26.2")
-    implementation("org.jetbrains.exposed:exposed-dao:0.26.2")
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.26.2")
-    implementation("org.xerial:sqlite-jdbc:3.32.3.2")
+//    implementation("org.jetbrains.exposed:exposed-core:0.26.2")
+//    implementation("org.jetbrains.exposed:exposed-dao:0.26.2")
+//    implementation("org.jetbrains.exposed:exposed-jdbc:0.26.2")
+//    implementation("org.xerial:sqlite-jdbc:3.32.3.2")
 
-    implementation("org.apache.lucene:lucene-core:6.4.1")
-
-    implementation("com.vladsch.flexmark:flexmark-all:0.62.2")
-    implementation("com.github.ajalt:clikt:2.8.0")
-    api("com.googlecode.lanterna:lanterna:3.0.3")
+//    implementation("org.apache.lucene:lucene-core:6.4.1")
+//
+//    implementation("com.vladsch.flexmark:flexmark-all:0.62.2")
+    implementation(libs.clikt)
+    api(libs.lanterna)
 
     // Use the Kotlin test library.
     testImplementation("org.jetbrains.kotlin:kotlin-test")

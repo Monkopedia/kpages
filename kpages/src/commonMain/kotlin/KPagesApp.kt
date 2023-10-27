@@ -16,9 +16,17 @@
 package com.monkopedia.kpages
 
 import com.monkopedia.kpages.KPagesApp.Route
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.jvm.JvmInline
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
 
-abstract class KPagesApp {
+abstract class KPagesApp : CoroutineScope {
     internal val routes = mutableListOf<Route>()
+    private val parentJob = SupervisorJob()
+    override val coroutineContext: CoroutineContext = EmptyCoroutineContext + parentJob
     abstract fun RouteBuilder.routes()
 
     fun resolve(path: String): Route? {
@@ -47,34 +55,20 @@ abstract class KPagesApp {
         val title: String?,
         val factory: ViewControllerFactory
     )
-}
 
-fun <T> Mutable(): Mutable<T?> = Mutable(null)
-
-class Mutable<T>(initial: T) {
-    var value: T = initial
-        set(value) {
-            if (field != value) {
-                field = value
-                callbacks.forEach {
-                    it(value)
-                }
-            }
-        }
-    private val callbacks = mutableListOf<(T) -> Unit>()
-
-    fun attach(callback: (T) -> Unit) {
-        callback(value)
-        callbacks.add(callback)
-    }
-
-    fun detach(callback: (T) -> Unit) {
-        callbacks.remove(callback)
+    fun close() {
+        parentJob.cancel()
     }
 }
 
+fun <T> Mutable(): MutableStateFlow<T?> = MutableStateFlow(null)
 
-inline class RouteBuilder(private val app: KPagesApp) {
+fun <T> Mutable(initial: T): MutableStateFlow<T> = MutableStateFlow(initial)
+
+typealias Mutable<T> = MutableStateFlow<T>
+
+@JvmInline
+value class RouteBuilder(private val app: KPagesApp) {
     fun route(s: String, title: String?, cls: ViewControllerFactory) {
         app.routes.add(Route(s, true, title, cls))
     }

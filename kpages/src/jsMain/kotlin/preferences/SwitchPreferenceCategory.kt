@@ -15,52 +15,43 @@
  */
 package com.monkopedia.kpages.preferences
 
-import com.ccfraser.muirwik.components.MTypographyVariant
-import com.ccfraser.muirwik.components.mSwitch
-import com.ccfraser.muirwik.components.mTypography
-import com.monkopedia.kpages.Navigator
+import emotion.react.css
+import js.core.jso
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.css.LinearDimension
-import kotlinx.css.marginLeft
-import kotlinx.css.marginRight
-import kotlinx.css.px
-import react.RBuilder
-import react.RState
-import react.setState
-import styled.css
+import mui.material.Switch
+import mui.material.Typography
+import mui.material.styles.TypographyVariant
+import react.FC
+import react.useState
+import web.cssom.Auto
+import web.cssom.px
 
 actual external interface SwitchPreferenceCategoryProps : PreferenceCategoryProps {
     actual var initialState: Boolean?
     actual var onChange: (suspend (Boolean) -> Unit)?
 }
 
-external interface SwitchPreferenceCategoryState : RState {
-    var selected: Boolean?
-}
-
-class SwitchPreferenceCategory :
-    PreferenceCategory<SwitchPreferenceCategoryProps, SwitchPreferenceCategoryState>() {
-
-    override fun RBuilder.renderHeader() {
-        props.title?.let {
-            mTypography(variant = MTypographyVariant.h5) {
+val SwitchPreferenceCategory = FC<PreferencePropsHolder<SwitchPreferenceCategoryProps>> { props ->
+    var selected: Boolean? by useState(props.preferenceProps.initialState)
+    PreferenceCategoryBase {
+        preferenceProps = props.preferenceProps
+        props.preferenceProps.title?.let {
+            Typography {
+                variant = TypographyVariant.h5
                 +it
             }
         }
-        mSwitch(
-            state.selected ?: props.initialState ?: false,
+        Switch {
+            checked = selected
             onChange = { e, b ->
-                setState {
-                    selected = b
-                    GlobalScope.launch {
-                        props.onChange?.invoke(b)
-                    }
+                selected = b
+                GlobalScope.launch {
+                    props.preferenceProps.onChange?.invoke(b)
                 }
             }
-        ) {
             css {
-                marginLeft = LinearDimension.auto
+                marginLeft = Auto.auto
                 marginRight = 16.px
             }
         }
@@ -71,11 +62,13 @@ actual inline fun PreferenceBuilder.switchPreferenceCategory(
     noinline handler: SwitchPreferenceCategoryProps.() -> Unit,
     crossinline builder: PreferenceBuilder.() -> Unit
 ) {
-    base.child(SwitchPreferenceCategory::class) {
-        attrs {
-            handler()
-            children = {
-                it.builder()
+    base.apply {
+        SwitchPreferenceCategory {
+            preferenceProps = jso {
+                handler()
+                children = {
+                    it.builder()
+                }
             }
         }
     }
@@ -87,13 +80,15 @@ actual inline fun PreferenceBuilder.switchPreferenceCategory(
     noinline onChange: (suspend (Boolean) -> Unit)?,
     crossinline builder: PreferenceBuilder.() -> Unit
 ) {
-    base.child(SwitchPreferenceCategory::class) {
-        attrs {
-            this.title = title
-            this.initialState = initialState
-            this.onChange = onChange
-            children = {
-                it.builder()
+    base.apply {
+        SwitchPreferenceCategory {
+            preferenceProps = jso {
+                this.title = title
+                this.initialState = initialState
+                this.onChange = onChange
+                children = {
+                    it.builder()
+                }
             }
         }
     }

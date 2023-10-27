@@ -16,78 +16,52 @@
 package com.monkopedia.kpages.preferences
 
 import com.monkopedia.kpages.INSTANCE
-import com.monkopedia.kpages.Mutable
+import com.monkopedia.kpages.JsControllerFactory
+import com.monkopedia.kpages.KPageProps
 import com.monkopedia.kpages.Navigator
 import com.monkopedia.kpages.ViewControllerFactory
-import kotlinx.css.paddingLeft
-import kotlinx.css.paddingRight
-import kotlinx.css.px
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
-import react.ReactElement
-import react.setState
-import styled.css
-import styled.styledDiv
+import emotion.react.css
+import react.ChildrenBuilder
+import react.FC
+import react.dom.html.ReactHTML.div
+import react.useEffect
+import react.useState
+import web.cssom.px
 
-actual class PreferenceScreen actual constructor(
+actual fun PreferenceScreen(adapter: (String) -> PreferenceAdapter): ViewControllerFactory =
+    JsPreferenceScreen(adapter)
+
+class JsPreferenceScreen(
     private val adapter: (String) -> PreferenceAdapter
-) : ViewControllerFactory() {
-    override fun RBuilder.create(path: String, title: Mutable<CharSequence>): ReactElement? {
-        return child(PreferenceComponent::class) {
-            attrs {
-                this.title = title
-                preferences = adapter(path)
-                navigator = Navigator.INSTANCE
-            }
+) : JsControllerFactory() {
+    override val element: FC<KPageProps> = FC { props ->
+        var preferences: PreferenceAdapter? by useState()
+        var state by useState(0)
+        useEffect(props.route) {
+            preferences = adapter(props.route ?: "")
         }
-    }
-}
-
-external interface PreferenceComponentProps : RProps {
-    var preferences: PreferenceAdapter?
-    var title: Mutable<CharSequence>?
-    var navigator: Navigator?
-}
-
-class PreferenceComponent(props: PreferenceComponentProps) :
-    RComponent<PreferenceComponentProps, RState>(props) {
-
-    init {
-        props.preferences?.component = this
-        props.title?.value = props.preferences?.title ?: "Preference screen"
-    }
-
-    override fun componentWillReceiveProps(nextProps: PreferenceComponentProps) {
-        nextProps.preferences?.component = this
-        nextProps.title?.value = nextProps.preferences?.title ?: "Preference screen"
-    }
-
-    override fun RBuilder.render() {
-        styledDiv {
+        div {
             css {
                 paddingLeft = 16.px
                 paddingRight = 16.px
             }
-            props.preferences?.apply {
-                PreferenceBuilder(this@render).build()
+            preferences?.apply {
+                navigator = Navigator.INSTANCE
+                onChange = {
+                    props.title?.value = title
+                    state += 1
+                }
+                PreferenceBuilder(this@div).build()
             }
         }
     }
 }
 
-actual class PreferenceBuilder(val base: RBuilder)
+actual class PreferenceBuilder(val base: ChildrenBuilder)
 
-actual abstract class PreferenceAdapter actual constructor() {
-    internal lateinit var component: PreferenceComponent
-    actual val navigator: Navigator
-        get() = Navigator.INSTANCE
-
+actual abstract class PreferenceAdapter actual constructor() : PreferenceAdapterBase() {
     actual fun notifyChanged() {
-        component.props.title!!.value = title
-        component.forceUpdate {
-        }
+        onChange()
     }
 
     actual abstract fun PreferenceBuilder.build()

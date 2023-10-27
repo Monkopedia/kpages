@@ -16,28 +16,24 @@
 package com.monkopedia.kpages
 
 import kotlinx.browser.window
-import react.RBuilder
-import react.RComponent
-import react.RHandler
-import react.RProps
-import react.ReactElement
-import react.rClass
-import kotlin.reflect.KClass
+import react.ChildrenBuilder
+import react.FC
+import react.Props
 
-inline fun factory(noinline f: RBuilder.(String, Mutable<CharSequence>) -> ReactElement?): ViewControllerFactory {
-    return object : ViewControllerFactory() {
-        override fun RBuilder.create(path: String, title: Mutable<CharSequence>): ReactElement? = f(path, title)
+external interface KPageProps : Props {
+    var route: String?
+    var title: Mutable<CharSequence>?
+}
+
+inline fun factory(noinline f: ChildrenBuilder.(KPageProps) -> Unit): ViewControllerFactory {
+    return object : JsControllerFactory() {
+        override val element: FC<KPageProps> = FC(f)
     }
 }
 
-actual abstract class ViewControllerFactory {
-    abstract fun RBuilder.create(path: String, title: Mutable<CharSequence>): ReactElement?
+abstract class JsControllerFactory : ViewControllerFactory() {
+    abstract val element: FC<KPageProps>
 }
-
-inline fun <P : RProps, T : RComponent<P, *>> ClassFactory(
-    cls: KClass<T>,
-    noinline r: RHandler<out RProps> = {}
-) = factory { _, _ -> cls.rClass.invoke(r).also { child(it) } }
 
 internal class NavigatorImpl : Navigator {
     override val path: String

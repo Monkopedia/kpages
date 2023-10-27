@@ -15,39 +15,37 @@
  */
 package com.monkopedia.kpages.preferences
 
-import com.ccfraser.muirwik.components.MTypographyColor
-import com.ccfraser.muirwik.components.MTypographyVariant
-import com.ccfraser.muirwik.components.button.MButtonVariant
-import com.ccfraser.muirwik.components.button.mButton
-import com.ccfraser.muirwik.components.mTypography
-import com.ccfraser.muirwik.components.table.MTableCellPadding
-import com.ccfraser.muirwik.components.table.mTableCell
-import com.ccfraser.muirwik.components.table.mTableRow
+import emotion.react.css
+import js.core.jso
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.css.Align
-import kotlinx.css.Display
-import kotlinx.css.FlexDirection
-import kotlinx.css.LinearDimension
-import kotlinx.css.Position
-import kotlinx.css.alignItems
-import kotlinx.css.display
-import kotlinx.css.flexDirection
-import kotlinx.css.height
-import kotlinx.css.left
-import kotlinx.css.padding
-import kotlinx.css.pct
-import kotlinx.css.position
-import kotlinx.css.px
-import kotlinx.css.width
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
-import styled.css
-import styled.styledDiv
+import mui.material.Button
+import mui.material.ButtonVariant
+import mui.material.TableCell
+import mui.material.TableCellPadding
+import mui.material.TableRow
+import mui.material.Typography
+import mui.material.styles.TypographyVariant
+import mui.system.sx
+import react.FC
+import react.PropsWithChildren
+import react.dom.html.ReactHTML.div
+import web.cssom.AlignContent
+import web.cssom.AlignItems
+import web.cssom.Auto
+import web.cssom.Color
+import web.cssom.Display
+import web.cssom.FlexDirection
+import web.cssom.Length
+import web.cssom.Position
+import web.cssom.pct
+import web.cssom.px
 
-actual external interface PreferenceBaseProps : RProps {
+external interface PreferencePropsHolder<T : PreferenceBaseProps> : PropsWithChildren {
+    var preferenceProps: T
+}
+
+actual external interface PreferenceBaseProps {
     actual var onClick: (suspend (Any) -> Unit)?
 }
 
@@ -56,50 +54,48 @@ actual external interface PreferenceProps : PreferenceBaseProps {
     actual var subtitle: String?
 }
 
-abstract class PreferenceBase<P : PreferenceBaseProps, S : RState> : RComponent<P, S>() {
-    override fun RBuilder.render() {
-        mTableRow {
-            mTableCell(padding = MTableCellPadding.none) {
-                styledDiv {
+val PreferenceBase = FC<PreferencePropsHolder<PreferenceBaseProps>> { props ->
+    TableRow {
+        TableCell {
+            padding = TableCellPadding.none
+            div {
+                css {
+                    display = Display.flex
+                    width = Auto.auto
+                    height = Length.maxContent
+                    flexDirection = FlexDirection.column
+                    position = Position.relative
+                }
+                div {
                     css {
-                        display = Display.flex
-                        width = LinearDimension.auto
-                        height = LinearDimension.maxContent
-                        flexDirection = FlexDirection.column
-                        position = Position.relative
+                        padding = 16.px
                     }
-                    styledDiv {
+                    +props.children
+                }
+                props.preferenceProps.onClick?.let { listener ->
+                    div {
                         css {
-                            padding(16.px)
+                            width = 100.pct
+                            height = 100.pct
+                            position = Position.absolute
+                            left = 0.px
                         }
-                        renderPreference()
-                    }
-                    props.onClick?.let { listener ->
-                        styledDiv {
-                            css {
-                                width = 100.pct
-                                height = 100.pct
-                                position = Position.absolute
-                                left = 0.px
+                        Button {
+                            variant = ButtonVariant.text
+                            onClick = {
+                                GlobalScope.launch {
+                                    listener(this@FC)
+                                }
                             }
-                            mButton(
-                                "",
-                                variant = MButtonVariant.text,
-                                onClick = {
-                                    GlobalScope.launch {
-                                        listener(this@PreferenceBase)
-                                    }
-                                }
-                            ) {
+                            css {
+                                height = 100.pct
+                                width = 100.pct
+                            }
+                            div {
                                 css {
-                                    height = 100.pct
-                                    width = 100.pct
-                                }
-                                styledDiv {
-                                    css {
-                                        asDynamic().all = "revert"
-                                        alignItems = Align.start
-                                    }
+                                    asDynamic().all = "revert"
+                                    alignItems = AlignItems.start
+                                    alignContent = AlignContent.center
                                 }
                             }
                         }
@@ -108,31 +104,40 @@ abstract class PreferenceBase<P : PreferenceBaseProps, S : RState> : RComponent<
             }
         }
     }
-
-    abstract fun RBuilder.renderPreference()
 }
 
-class Preference : PreferenceBase<PreferenceProps, RState>() {
-    override fun RBuilder.renderPreference() {
-        props.title?.let {
-            mTypography(
-                it,
-                MTypographyVariant.subtitle1,
-                color = MTypographyColor.textPrimary
-            )
+val Preference = FC<PreferencePropsHolder<PreferenceProps>> { props ->
+    PreferenceBase {
+        +props
+        PreferenceText {
+            +props
         }
-        props.subtitle?.let {
-            mTypography(
-                it,
-                MTypographyVariant.body2,
-                color = MTypographyColor.textSecondary
-            )
+    }
+}
+
+val PreferenceText = FC<PreferencePropsHolder<PreferenceProps>> { props ->
+    props.preferenceProps.title?.let {
+        Typography {
+            variant = TypographyVariant.subtitle1
+            sx { color = Color("text-primary") }
+            +it
+        }
+    }
+    props.preferenceProps.subtitle?.let {
+        Typography {
+            variant = TypographyVariant.body2
+            sx { color = Color("text-secondary") }
+            +it
         }
     }
 }
 
 actual inline fun PreferenceBuilder.preference(noinline handler: PreferenceProps.() -> Unit) {
-    base.child(Preference::class) {
-        attrs(handler)
+    base.apply {
+        Preference {
+            preferenceProps = jso {
+                handler()
+            }
+        }
     }
 }

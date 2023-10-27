@@ -15,64 +15,63 @@
  */
 package com.monkopedia.kpages.demo
 
-import com.ccfraser.muirwik.components.styles.PaletteOptions
-import com.ccfraser.muirwik.components.styles.ThemeOptions
-import com.ccfraser.muirwik.components.styles.TypographyOptions
-import com.ccfraser.muirwik.components.styles.TypographyStyle
-import com.ccfraser.muirwik.components.styles.createMuiTheme
-import kotlinext.js.js
+import js.core.jso
+import mui.material.PaletteMode
+import mui.material.styles.ThemeOptions
+import mui.material.styles.createTheme
+import web.cssom.Color
 
-private val themeOptions: ThemeOptions = (js { } as ThemeOptions).also { themeOptions ->
-    themeOptions.typography = js { } as? TypographyOptions
-    themeOptions.typography?.useNextVariants = true
-    themeOptions.typography?.button = js {
+private val themeOptions: ThemeOptions = jso {
+    typography = jso { }
+    typography?.useNextVariants = true
+    typography?.button = jso {
         textTransform = "none"
-    } as TypographyStyle
+    }
     // themeOptions.typography?.fontSize = 12
-    themeOptions.palette = js {
-        type = "light"
-        primary = js {
+    palette = jso {
+        mode = PaletteMode.light
+        primary = jso {
             main = "#1a237e"
             light = "#534bae"
             dark = "#000051"
         }
-        secondary = js {
+        secondary = jso {
             main = "#009688"
             light = "#52c7b8"
             dark = "#00675b"
         }
-        text = js {
-            main = "#111111"
-            primary = "#212121"
-            secondary = "#616161"
+        text = jso {
+//            main = "#111111"
+            primary = Color("#212121")
+            secondary = Color("#616161")
         }
-    } as PaletteOptions
+    }
 }
 
-val theme = createMuiTheme(themeOptions = themeOptions)
+val theme = createTheme(options = themeOptions)
 
-private val invertedThemeOptions: ThemeOptions = (js { } as ThemeOptions).also { themeOptions ->
-    themeOptions.typography = js { } as? TypographyOptions
-    themeOptions.typography?.useNextVariants = true
+private val invertedThemeOptions: ThemeOptions = jso {
+    typography = jso()
+    typography?.useNextVariants = true
     // themeOptions.typography?.fontSize = 12
-    themeOptions.palette = js {
-        type = "dark"
-        secondary = js {
+    palette = jso {
+        mode = PaletteMode.dark
+        secondary = jso {
             main = "#1a237e"
             light = "#534bae"
             dark = "#000051"
         }
-        primary = js {
+        primary = jso {
             main = "#009688"
             light = "#52c7b8"
             dark = "#00675b"
         }
-        text = js {
-            main = "#FAFAFA"
-            primary = "#FAFAFA"
-            secondary = "#EEEEEE"
+        text = jso {
+//            main = "#FAFAFA"
+            primary = Color("#FAFAFA")
+            secondary = Color("#EEEEEE")
         }
-    } as PaletteOptions
+    }
 }
 
-val invertedTheme = createMuiTheme(themeOptions = invertedThemeOptions)
+val invertedTheme = createTheme(options = invertedThemeOptions)

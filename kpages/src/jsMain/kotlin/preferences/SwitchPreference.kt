@@ -15,68 +15,55 @@
  */
 package com.monkopedia.kpages.preferences
 
-import com.ccfraser.muirwik.components.MTypographyColor
-import com.ccfraser.muirwik.components.MTypographyVariant
-import com.ccfraser.muirwik.components.mSwitch
-import com.ccfraser.muirwik.components.mTypography
+import emotion.react.css
+import js.core.jso
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.css.Display
-import kotlinx.css.LinearDimension
-import kotlinx.css.display
-import kotlinx.css.marginLeft
-import kotlinx.css.marginRight
-import kotlinx.css.px
-import react.RBuilder
-import react.RState
-import react.setState
-import styled.css
-import styled.styledDiv
+import mui.material.Switch
+import react.FC
+import react.dom.html.ReactHTML.div
+import react.useState
+import web.cssom.AlignItems
+import web.cssom.Auto
+import web.cssom.Display
+import web.cssom.px
 
 actual external interface SwitchPreferenceProps : PreferenceProps {
     actual var initialState: Boolean?
     actual var onChange: (suspend (Boolean) -> Unit)?
 }
 
-external interface SwitchPreferenceState : RState {
-    var selected: Boolean?
-}
-
-class SwitchPreference : PreferenceBase<SwitchPreferenceProps, SwitchPreferenceState>() {
-    override fun RBuilder.renderPreference() {
-        styledDiv {
+val SwitchPreference = FC<PreferencePropsHolder<SwitchPreferenceProps>> { props ->
+    var selected: Boolean by useState(props.preferenceProps.initialState ?: false)
+    PreferenceBase {
+        preferenceProps = props.preferenceProps
+        preferenceProps.onClick = {
+            val newValue = !selected
+            selected = newValue
+            GlobalScope.launch {
+                props.preferenceProps.onChange?.invoke(newValue)
+            }
+        }
+        div {
             css {
                 display = Display.flex
+                alignItems = AlignItems.center
             }
-            styledDiv {
-                props.title?.let {
-                    mTypography(
-                        it,
-                        MTypographyVariant.subtitle1,
-                        color = MTypographyColor.textPrimary
-                    )
-                }
-                props.subtitle?.let {
-                    mTypography(
-                        it,
-                        MTypographyVariant.body2,
-                        color = MTypographyColor.textSecondary
-                    )
+            div {
+                PreferenceText {
+                    +props
                 }
             }
-            mSwitch(
-                state.selected ?: props.initialState ?: false,
+            Switch {
+                this.checked = selected
                 onChange = { e, b ->
-                    setState {
-                        selected = b
-                        GlobalScope.launch {
-                            props.onChange?.invoke(b)
-                        }
+                    selected = b
+                    GlobalScope.launch {
+                        props.preferenceProps.onChange?.invoke(b)
                     }
                 }
-            ) {
                 css {
-                    marginLeft = LinearDimension.auto
+                    marginLeft = Auto.auto
                     marginRight = 16.px
                 }
             }
@@ -87,17 +74,11 @@ class SwitchPreference : PreferenceBase<SwitchPreferenceProps, SwitchPreferenceS
 actual inline fun PreferenceBuilder.switchPreference(
     noinline handler: SwitchPreferenceProps.() -> Unit
 ) {
-    base.child(SwitchPreference::class) {
-        attrs {
-            onClick = {
-                (it as SwitchPreference).setState {
-                    selected = !(selected ?: it.props.initialState ?: false)
-                    GlobalScope.launch {
-                        it.props.onChange?.invoke(selected!!)
-                    }
-                }
+    base.apply {
+        SwitchPreference {
+            preferenceProps = jso {
+                handler()
             }
-            handler()
         }
     }
 }

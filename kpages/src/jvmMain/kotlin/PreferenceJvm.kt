@@ -15,6 +15,7 @@
  */
 package com.monkopedia.kpages.preferences
 
+import com.monkopedia.kpages.JvmControllerFactory
 import com.monkopedia.kpages.Mutable
 import com.monkopedia.kpages.Navigator
 import com.monkopedia.kpages.ViewControllerFactory
@@ -29,9 +30,12 @@ actual interface PreferenceProps : PreferenceBaseProps {
     actual var subtitle: String?
 }
 
-actual class PreferenceScreen actual constructor(
+actual fun PreferenceScreen(adapter: (String) -> PreferenceAdapter): ViewControllerFactory =
+    JvmPreferenceScreenFactory(adapter)
+
+class JvmPreferenceScreenFactory(
     private val adapter: (String) -> PreferenceAdapter
-) : ViewControllerFactory() {
+) : JvmControllerFactory() {
     override fun create(navigator: Navigator, path: String, title: Mutable<CharSequence>): Screen {
         return JvmPreferenceScreen(navigator, title, adapter(path))
     }
@@ -41,9 +45,9 @@ actual inline fun PreferenceBuilder.preference(noinline handler: PreferenceProps
     add(createPreferenceProps().also(handler))
 }
 
-actual interface PreferenceCategoryProps {
+actual interface PreferenceCategoryProps : PreferenceBaseProps {
     actual var title: String?
-    val builder: PreferenceBuilder
+    actual var children: ((PreferenceBuilder) -> Unit)?
 }
 
 actual inline fun PreferenceBuilder.preferenceCategory(
@@ -52,7 +56,9 @@ actual inline fun PreferenceBuilder.preferenceCategory(
 ) {
     val props = createCategory()
     props.handler()
-    props.builder.builder()
+    props.children = {
+        it.builder()
+    }
     add(props)
 }
 
@@ -62,7 +68,9 @@ actual inline fun PreferenceBuilder.preferenceCategory(
 ) {
     val props = createCategory()
     props.title = title
-    props.builder.builder()
+    props.children = {
+        it.builder()
+    }
     add(props)
 }
 
@@ -76,7 +84,6 @@ actual interface SelectionPreferenceProps<T : SelectionOption> : PreferenceProps
     actual var options: List<T>?
 }
 
-
 actual inline fun <reified T : SelectionOption> PreferenceBuilder.selectionPreference(
     noinline handler: SelectionPreferenceProps<T>.() -> Unit
 ) {
@@ -87,7 +94,6 @@ actual interface SwitchPreferenceProps : PreferenceProps {
     actual var initialState: Boolean?
     actual var onChange: (suspend (Boolean) -> Unit)?
 }
-
 
 actual inline fun PreferenceBuilder.switchPreference(
     noinline handler: SwitchPreferenceProps.() -> Unit
@@ -104,10 +110,14 @@ actual inline fun PreferenceBuilder.switchPreferenceCategory(
     noinline handler: SwitchPreferenceCategoryProps.() -> Unit,
     crossinline builder: PreferenceBuilder.() -> Unit
 ) {
-    add(createSwitchPreferenceCategoryProps().apply {
-        handler()
-        this.builder.builder()
-    })
+    add(
+        createSwitchPreferenceCategoryProps().apply {
+            handler()
+            this.children = {
+                it.builder()
+            }
+        }
+    )
 }
 
 actual inline fun PreferenceBuilder.switchPreferenceCategory(
@@ -116,12 +126,16 @@ actual inline fun PreferenceBuilder.switchPreferenceCategory(
     noinline onChange: (suspend (Boolean) -> Unit)?,
     crossinline builder: PreferenceBuilder.() -> Unit
 ) {
-    add(createSwitchPreferenceCategoryProps().apply {
-        this.title = title
-        this.initialState = initialState
-        this.onChange = onChange
-        this.builder.builder()
-    })
+    add(
+        createSwitchPreferenceCategoryProps().apply {
+            this.title = title
+            this.initialState = initialState
+            this.onChange = onChange
+            this.children = {
+                it.builder()
+            }
+        }
+    )
 }
 
 actual interface TextInputPreferenceProps : PreferenceProps {
@@ -133,16 +147,12 @@ actual interface TextInputPreferenceProps : PreferenceProps {
 }
 
 actual inline fun PreferenceBuilder.textInputPreference(
-    noinline handler: TextInputPreferenceProps.() -> Unit,
+    noinline handler: TextInputPreferenceProps.() -> Unit
 ) {
     add(createTextInputPreferenceProps().also(handler))
 }
 
-actual abstract class PreferenceAdapter actual constructor() {
-    internal lateinit var navigatorImpl: Navigator
-    internal lateinit var onChange: () -> Unit
-    actual val navigator: Navigator
-        get() = navigatorImpl
+actual abstract class PreferenceAdapter actual constructor() : PreferenceAdapterBase() {
 
     actual fun notifyChanged() {
         onChange()

@@ -17,7 +17,7 @@ package com.monkopedia.asciifont
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.isSuccess
 import io.ktor.util.cio.writeChannel
 import io.ktor.utils.io.copyAndClose
@@ -73,11 +73,11 @@ class FontLoader(private val homeDir: File, private val fontConfig: Properties) 
         val url = fontConfig.getProperty(font)
             ?: throw IllegalArgumentException("Font $font isn't configured")
         if (!fontFile.exists() || state.fontCache[font] != url) {
-            val response = client.get<HttpResponse>(url)
+            val response = client.get(url)
             if (!response.status.isSuccess()) {
                 throw IllegalStateException(response.toString())
             }
-            response.content.copyAndClose(fontFile.writeChannel())
+            response.bodyAsChannel().copyAndClose(fontFile.writeChannel())
             state = state.copy(
                 fontCache = state.fontCache.toMutableMap().also {
                     it[font] = url

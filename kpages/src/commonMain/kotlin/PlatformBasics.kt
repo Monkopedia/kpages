@@ -15,7 +15,7 @@
  */
 package com.monkopedia.kpages
 
-expect abstract class ViewControllerFactory
+abstract class ViewControllerFactory internal constructor()
 
 interface Navigator {
     val path: String

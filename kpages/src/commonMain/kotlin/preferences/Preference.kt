@@ -18,13 +18,13 @@ package com.monkopedia.kpages.preferences
 import com.monkopedia.kpages.Navigator
 import com.monkopedia.kpages.ViewControllerFactory
 
-expect class PreferenceScreen(adapter: (String) -> PreferenceAdapter) :
+expect fun PreferenceScreen(adapter: (String) -> PreferenceAdapter):
     ViewControllerFactory
 
 fun PreferenceScreen(
     title: String,
     preferenceBuilder: PreferenceBuilder.(Navigator) -> Unit
-): PreferenceScreen {
+): ViewControllerFactory {
     return PreferenceScreen {
         object : PreferenceAdapter() {
             override val title: String = title
@@ -35,8 +35,13 @@ fun PreferenceScreen(
     }
 }
 
-expect abstract class PreferenceAdapter() {
-    val navigator: Navigator
+open class PreferenceAdapterBase {
+    internal lateinit var onChange: () -> Unit
+    lateinit var navigator: Navigator
+        internal set
+}
+
+expect abstract class PreferenceAdapter() : PreferenceAdapterBase {
     fun notifyChanged()
     abstract val title: String
     abstract fun PreferenceBuilder.build()
@@ -53,8 +58,9 @@ expect interface PreferenceProps : PreferenceBaseProps {
 
 expect inline fun PreferenceBuilder.preference(noinline handler: PreferenceProps.() -> Unit = {})
 
-expect interface PreferenceCategoryProps {
+expect interface PreferenceCategoryProps : PreferenceBaseProps {
     var title: String?
+    var children: ((PreferenceBuilder) -> Unit)?
 }
 
 expect inline fun PreferenceBuilder.preferenceCategory(

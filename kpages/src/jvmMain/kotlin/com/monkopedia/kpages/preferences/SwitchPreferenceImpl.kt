@@ -1,3 +1,18 @@
+/*
+ * Copyright 2020 Jason Monk
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.monkopedia.kpages.preferences
 
 import com.googlecode.lanterna.SGR
@@ -87,25 +102,30 @@ internal class SwitchPreferenceImpl : CachingPanel(), SwitchPreferenceProps, Pre
         }
 
     private fun rebind() {
-        titleLabel.setText(Spanned().apply {
-            title?.let {
-                append(
-                    it,
-                    EnableSGRSpan(
-                        *(
+        titleLabel.setText(
+            Spanned().apply {
+                title?.let {
+                    append(
+                        it,
+                        EnableSGRSpan(
+                            *(
                                 if (selected) arrayOf(SGR.BOLD, SGR.REVERSE)
-                                else arrayOf(SGR.BOLD))
+                                else arrayOf(SGR.BOLD)
+                                )
+                        )
                     )
-                )
+                }
             }
-        })
+        )
         subtitleLabel.layoutData =
             WeightedLayoutParams(Fill, if (subtitle != null) Wrap else SizeSpec.specify(0))
-        subtitleLabel.setText(Spanned().apply {
-            subtitle?.let {
-                append(it, EnableSGRSpan(*(if (selected) arrayOf(SGR.REVERSE) else arrayOf())))
+        subtitleLabel.setText(
+            Spanned().apply {
+                subtitle?.let {
+                    append(it, EnableSGRSpan(*(if (selected) arrayOf(SGR.REVERSE) else arrayOf())))
+                }
             }
-        })
+        )
         checkbox.text = if (state) "[X]" else "[ ]"
     }
 }

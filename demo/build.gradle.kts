@@ -25,7 +25,6 @@ version = "0.1"
 repositories {
     mavenLocal()
     mavenCentral()
-    jcenter()
     maven("https://kotlin.bintray.com/kotlin-js-wrappers")
 }
 
@@ -35,11 +34,13 @@ dependencies {
 kotlin {
     js {
         useCommonJs()
-        nodejs()
         browser {
             webpackTask {
                 output.libraryTarget = COMMONJS
             }
+        }
+        this.binaries.apply {
+            executable()
         }
     }
     jvm {
@@ -50,31 +51,32 @@ kotlin {
     }
     sourceSets["jvmMain"].dependencies {
         implementation(project(":lanterna-ext"))
-        implementation("org.slf4j:slf4j-api:1.6.1")
-        implementation("ch.qos.logback:logback-classic:1.2.3")
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
+        implementation(libs.slf4j.api)
+        implementation(libs.logback.classic)
+        implementation(libs.kotlinx.serialization.json)
+        implementation(libs.ktor.client.jetty)
+        implementation(libs.kotlinx.coroutines.core)
     }
     sourceSets["jsMain"].dependencies {
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
-        implementation("org.jetbrains.kotlin:kotlin-stdlib-js")
-        implementation("org.jetbrains:kotlin-extensions:1.0.1-pre.124-kotlin-1.4.10")
-        implementation("org.jetbrains:kotlin-css:1.0.0-pre.124-kotlin-1.4.10")
-        implementation("org.jetbrains:kotlin-styled:5.2.0-pre.124-kotlin-1.4.10")
-        implementation("org.jetbrains:kotlin-react:16.13.1-pre.124-kotlin-1.4.10")
-        implementation("org.jetbrains:kotlin-react-dom:16.13.1-pre.124-kotlin-1.4.10")
-        implementation("org.jetbrains:kotlin-react-router-dom:5.1.2-pre.124-kotlin-1.4.10")
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0")
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.0")
-        implementation("com.ccfraser.muirwik:muirwik-components:0.6.2")
+        implementation(libs.kotlinx.coroutines.core)
+        implementation(kotlin("stdlib-js"))
+        implementation(libs.kotlin.extensions)
+        implementation(libs.kotlin.css)
+        implementation(libs.kotlin.emotion)
+        implementation(libs.kotlin.styled.next)
+        implementation(libs.kotlin.react)
+        implementation(libs.kotlin.react.dom)
+        implementation(libs.kotlin.react.router.dom)
+        implementation(libs.kotlinx.serialization.core)
+        implementation(libs.kotlinx.serialization.json)
+        implementation(libs.kotlin.mui)
+        implementation(libs.kotlin.mui.icons)
         implementation(project(":kpages"))
         implementation(npm("codemirror", "5.58.3"))
         implementation(npm("showdown", "1.9.1"))
         implementation(npm("css-loader", "3.5.2"))
         implementation(npm("style-loader", "1.1.3"))
         implementation(npm("bootstrap", "^4.4.1"))
-        implementation(npm("react", "~16.13.1"))
-        implementation(npm("react-dom", "~16.13.1"))
     }
     sourceSets["jsTest"].dependencies {
         implementation("org.jetbrains.kotlin:kotlin-test-js")
@@ -82,5 +84,5 @@ kotlin {
 }
 
 application {
-    mainClassName = "com.monkopedia.kpages.demo.DemoKt"
+    mainClass.set("com.monkopedia.kpages.demo.DemoKt")
 }
